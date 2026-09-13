@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Est@r - v1.3 (Multi-Pátio)</title>
+  <title>Est@r - v1.3 (Multi-Pátio com Categorias por Pátio)</title>
 
   <!-- Favicon e Ícone Web App -->
   <link rel="icon" type="image/png" href="favicon.png">
@@ -43,10 +43,8 @@
     .header-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     h1 { font-size: 1.2rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px; }
 
-    /* Tag de Pátio Atual no Título */
     .badge-patio-title { font-size: 0.75rem; background: #22c55e; color: #000; padding: 2px 8px; border-radius: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* Seletor Destacado de Pátio */
     .patio-selector-box { display: flex; align-items: center; gap: 8px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); padding: 6px 12px; border-radius: 10px; }
     .patio-selector-label { font-size: 0.75rem; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; white-space: nowrap; }
     .patio-select { background: var(--bg-color); color: #fff; border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; outline: none; cursor: pointer; }
@@ -378,6 +376,10 @@
     <div class="form-card">
       <h2 style="font-size: 1.1rem; margin-bottom: 14px; color: var(--vip-gold);" id="form-cat-titulo">🏷️ Gerenciar Tipos/Categorias de Vagas</h2>
       <div class="form-group">
+        <label class="form-label">PÁTIO PERTENCENTE *</label>
+        <select id="cad-cat-patio" class="modal-select"></select>
+      </div>
+      <div class="form-group">
         <label class="form-label">NOME DA CATEGORIA *</label>
         <input type="text" id="cad-cat-nome" class="modal-input" placeholder="Ex: Regulares, PCD, Motos, Idoso">
       </div>
@@ -558,7 +560,6 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // CORREÇÃO: Inicialização da instância secundária de Auth
     const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
     const secondaryAuth = getAuth(secondaryApp);
 
@@ -585,9 +586,9 @@
     ];
 
     const CATEGORIAS_PADRAO = [
-      { id: "cat_regular", nome: "Regulares", icone: "🔹", cor: "#3b82f6" },
-      { id: "cat_extra", nome: "Extras", icone: "🔸", cor: "#f97316" },
-      { id: "cat_vip", nome: "VIP", icone: "⭐", cor: "#fbbf24" }
+      { id: "cat_regular", patioId: "patio_batel", nome: "Regulares", icone: "🔹", cor: "#3b82f6" },
+      { id: "cat_extra", patioId: "patio_batel", nome: "Extras", icone: "🔸", cor: "#f97316" },
+      { id: "cat_vip", patioId: "patio_batel", nome: "VIP", icone: "⭐", cor: "#fbbf24" }
     ];
 
     const NOMES_REGULARES_DEF = Array.from({ length: 7 }, (_, i) => [`${i + 1}A`, `${i + 1}B`]).flat();
@@ -685,6 +686,10 @@
       localStorage.setItem('estacionamento_patio_ativo', patioAtivoId);
       renderizar();
       renderizarListaVagasConfig();
+    });
+
+    document.getElementById('nova-vaga-patio').addEventListener('change', () => {
+      atualizarSelectCategoriasModal();
     });
 
     document.getElementById('hist-filtro-patio').addEventListener('change', renderizarHistorico);
@@ -896,7 +901,10 @@
         }
 
         if (data.categoriasVagas && Array.isArray(data.categoriasVagas) && data.categoriasVagas.length > 0) {
-          categoriasVagas = data.categoriasVagas;
+          categoriasVagas = data.categoriasVagas.map(cat => {
+            if (!cat.patioId) cat.patioId = 'patio_batel';
+            return cat;
+          });
         } else {
           categoriasVagas = [...CATEGORIAS_PADRAO];
         }
@@ -937,11 +945,13 @@
       const selectHist = document.getElementById('hist-filtro-patio');
       const selectVeiculo = document.getElementById('cad-veiculo-patio');
       const selectVaga = document.getElementById('nova-vaga-patio');
+      const selectCatPatio = document.getElementById('cad-cat-patio');
 
       selectHeader.innerHTML = '';
       selectHist.innerHTML = '<option value="todos">Todos os Pátios</option>';
       selectVeiculo.innerHTML = '';
       selectVaga.innerHTML = '';
+      if (selectCatPatio) selectCatPatio.innerHTML = '';
 
       patios.forEach(p => {
         const optH = document.createElement('option');
@@ -961,6 +971,13 @@
         optVag.value = p.id; optVag.innerText = p.nome;
         if (p.id === patioAtivoId) optVag.selected = true;
         selectVaga.appendChild(optVag);
+
+        if (selectCatPatio) {
+          const optCatP = document.createElement('option');
+          optCatP.value = p.id; optCatP.innerText = p.nome;
+          if (p.id === patioAtivoId) optCatP.selected = true;
+          selectCatPatio.appendChild(optCatP);
+        }
       });
     }
 
@@ -1025,6 +1042,7 @@
       const p = patios.find(item => item.id === id);
       if (confirm(`Deseja realmente remover o pátio "${p ? p.nome : id}"?`)) {
         patios = patios.filter(item => item.id !== id);
+        categoriasVagas = categoriasVagas.filter(c => c.patioId !== id);
         if (patioAtivoId === id) {
           patioAtivoId = patios[0].id;
           localStorage.setItem('estacionamento_patio_ativo', patioAtivoId);
@@ -1059,9 +1077,10 @@
       });
     }
 
-    // CRUD DE CATEGORIAS
+    // CRUD DE CATEGORIAS (ISOLADAS POR PÁTIO)
     function salvarCategoria() {
       if (perfilUsuario !== "gestor") return;
+      const patioId = document.getElementById('cad-cat-patio').value;
       const nome = document.getElementById('cad-cat-nome').value.trim();
       const icone = document.getElementById('cad-cat-icone').value.trim() || '🏷️';
       const cor = document.getElementById('cad-cat-cor').value;
@@ -1071,6 +1090,7 @@
       if (catEmEdicaoId !== null) {
         const idx = categoriasVagas.findIndex(c => c.id === catEmEdicaoId);
         if (idx !== -1) {
+          categoriasVagas[idx].patioId = patioId;
           categoriasVagas[idx].nome = nome;
           categoriasVagas[idx].icone = icone;
           categoriasVagas[idx].cor = cor;
@@ -1080,9 +1100,9 @@
         cancelarEdicaoCategoria();
       } else {
         const novoId = 'cat_' + Date.now();
-        categoriasVagas.push({ id: novoId, nome, icone, cor });
+        categoriasVagas.push({ id: novoId, patioId, nome, icone, cor });
         salvar();
-        alert(`Categoria "${nome}" cadastrada com sucesso!`);
+        alert(`Categoria "${nome}" cadastrada com sucesso para o pátio ${obterNomePatio(patioId)}!`);
         document.getElementById('cad-cat-nome').value = '';
         document.getElementById('cad-cat-icone').value = '';
       }
@@ -1094,6 +1114,7 @@
 
       catEmEdicaoId = id;
       document.getElementById('form-cat-titulo').innerText = `✏️ Editar Categoria - ${cat.nome}`;
+      document.getElementById('cad-cat-patio').value = cat.patioId || patioAtivoId;
       document.getElementById('cad-cat-nome').value = cat.nome;
       document.getElementById('cad-cat-icone').value = cat.icone;
       document.getElementById('cad-cat-cor').value = cat.cor || '#3b82f6';
@@ -1135,13 +1156,15 @@
       container.innerHTML = '';
 
       categoriasVagas.forEach(cat => {
+        const nomePatio = obterNomePatio(cat.patioId);
         const item = document.createElement('div');
         item.className = 'vaga-config-item';
         item.style.borderLeftColor = cat.cor || '#3b82f6';
         item.innerHTML = `
           <div>
             <span style="font-size:1.1rem; margin-right:6px;">${cat.icone || '🏷️'}</span>
-            <strong>${cat.nome}</strong>
+            <strong>${cat.nome}</strong> 
+            <small style="color:var(--accent-blue); font-size:0.75rem; font-weight:bold; margin-left:4px;">(${nomePatio.toUpperCase()})</small>
           </div>
           <div class="vaga-config-actions">
             <button class="btn-sm-edit" data-id="${cat.id}">Editar</button>
@@ -1156,10 +1179,21 @@
 
     function atualizarSelectCategoriasModal() {
       const selectConfig = document.getElementById('nova-vaga-categoria');
+      const patioSelecionado = document.getElementById('nova-vaga-patio').value;
       if (!selectConfig) return;
       selectConfig.innerHTML = '';
 
-      categoriasVagas.forEach(cat => {
+      const catsDoPatio = categoriasVagas.filter(cat => (cat.patioId || 'patio_batel') === patioSelecionado);
+
+      if (catsDoPatio.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = "";
+        opt.innerText = "⚠️ Nenhuma categoria cadastrada para este pátio";
+        selectConfig.appendChild(opt);
+        return;
+      }
+
+      catsDoPatio.forEach(cat => {
         const opt = document.createElement('option');
         opt.value = cat.id;
         opt.innerText = `${cat.icone || '🏷️'} ${cat.nome}`;
@@ -1587,6 +1621,7 @@
       vagaEmEdicaoId = id;
       document.getElementById('form-vaga-titulo').innerText = `✏️ Editar Vaga ${v.nomeVaga}`;
       document.getElementById('nova-vaga-patio').value = v.patioId || patioAtivoId;
+      atualizarSelectCategoriasModal();
       document.getElementById('nova-vaga-nome').value = v.nomeVaga;
       document.getElementById('nova-vaga-categoria').value = v.categoria;
       document.getElementById('btn-adicionar-vaga').innerText = 'Salvar Alterações';
@@ -1722,7 +1757,6 @@
       const termoBusca = document.getElementById('search-input').value.toUpperCase().trim();
       const nomePatioAtivo = obterNomePatio(patioAtivoId);
 
-      // Atualiza Tag do Header e do Dashboard
       document.getElementById('badge-header-patio').innerText = nomePatioAtivo.toUpperCase();
       document.getElementById('lbl-patio-ocupacao').innerText = nomePatioAtivo.toUpperCase();
 
@@ -1733,10 +1767,15 @@
       let ocupadasTotais = 0;
       let livresTotais = 0;
 
-      // Filtra Vagas Apenas do Pátio Selecionado
+      // Vagas e Categorias Filtadas EXCLUSIVAMENTE para o Pátio Selecionado
       const vagasDoPatioAtivo = vagas.filter(v => (v.patioId || 'patio_batel') === patioAtivoId);
+      const categoriasDoPatioAtivo = categoriasVagas.filter(cat => (cat.patioId || 'patio_batel') === patioAtivoId);
 
-      categoriasVagas.forEach(cat => {
+      if (categoriasDoPatioAtivo.length === 0) {
+        containerCategorias.innerHTML = `<div class="empty-msg" style="text-align:center; padding: 20px;">Nenhuma categoria de vaga configurada para este pátio.</div>`;
+      }
+
+      categoriasDoPatioAtivo.forEach(cat => {
         let catTot = 0, catLiv = 0, catOcu = 0;
         const vagasDaCat = vagasDoPatioAtivo.filter(v => v.categoria === cat.id);
 
@@ -1984,7 +2023,6 @@
         return;
       }
 
-      // Restrito ao MESMO PÁTIO
       const outrasVagas = vagas.filter(v => (v.patioId || 'patio_batel') === patioAtivoId && v.nomeVaga !== nomeVaga);
 
       document.getElementById('modal-troca-detalhes').innerHTML = `
