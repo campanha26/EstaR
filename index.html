@@ -61,7 +61,6 @@
     .btn-data { flex: 1; min-width: 140px; padding: 8px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid transparent; white-space: nowrap; }
     .btn-data-export { background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.4); color: var(--accent-blue); }
     .btn-data-import { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: var(--green-free); }
-    .btn-data-reset { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: var(--red-busy); }
 
     .progress-container { margin-bottom: 12px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color); }
     .progress-header { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 6px; }
@@ -139,7 +138,7 @@
     .std-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px; margin-bottom: 8px; }
     .std-title { font-size: 1.05rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px; }
     .std-badge { font-size: 0.8rem; font-weight: 700; background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); padding: 2px 8px; border-radius: 6px; }
-    .std-badge.gold { background: rgba(251, 191, 36, 0.2); color: var(--vip-gold); }
+    .std-badge.gold { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
     .std-details { font-size: 0.8rem; color: var(--text-sub); display: flex; flex-direction: column; gap: 3px; }
     .std-actions { display: flex; gap: 6px; margin-top: 8px; justify-content: flex-end; }
 
@@ -157,6 +156,12 @@
     .vaga-config-actions { display: flex; gap: 6px; }
     .btn-sm-edit { background: rgba(245, 158, 11, 0.2); color: var(--amber-edit); border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
     .btn-sm-del { background: rgba(239, 68, 68, 0.2); color: var(--red-busy); border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+
+    .btn-export { background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: var(--accent-blue); padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+
+    .accordion-details { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+    .accordion-summary { padding: 14px 16px; font-weight: 800; font-size: 0.95rem; cursor: pointer; background: rgba(255, 255, 255, 0.03); user-select: none; color: var(--text-main); }
+    .accordion-body { padding: 16px; }
 
     .autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; background-color: var(--card-bg); border: 1px solid var(--accent-blue); border-radius: 8px; max-height: 180px; overflow-y: auto; z-index: 1050; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
     .autocomplete-item { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; display: flex; align-items: center; justify-content: space-between; }
@@ -211,10 +216,10 @@
       <button class="btn-auth" id="btn-auth-action">🔑 Entrar</button>
     </div>
 
+    <!-- Remoção do botão Resetar Tudo -->
     <div class="top-data-actions" id="top-data-actions" style="display: none;">
       <button class="btn-data btn-data-export" id="btn-export-json">📤 Exportar Backup</button>
       <button class="btn-data btn-data-import" id="btn-trigger-import">📥 Importar Backup</button>
-      <button class="btn-data btn-data-reset" id="btn-reset-data">⚠️ Resetar Tudo</button>
       <input type="file" id="file-import-input" accept=".json" style="display: none;">
     </div>
 
@@ -255,20 +260,24 @@
           <option value="7dias">Últimos 7 dias</option>
           <option value="mes">Este Mês</option>
         </select>
+
+        <button class="btn-export" id="btn-export-csv" style="display: none;">📥 Baixar Todo o Banco (CSV)</button>
       </div>
     </div>
 
     <div class="historico-header">
       <span style="font-size: 0.9rem; font-weight: bold; color: var(--text-sub);" id="cnt-historico">Registros: 0</span>
-      <div style="display: flex; gap: 8px;">
-        <button class="btn-export" id="btn-export-csv" style="display: none;">📥 Baixar CSV</button>
-        <button class="reset-btn" id="btn-clear-hist" style="display: none;">Limpar</button>
-      </div>
     </div>
 
-    <div class="search-box">
-      <input type="text" id="search-hist" class="search-input" placeholder="🔍 Buscar por placa, TAG, nome ou telefone...">
+    <!-- Barra de Pesquisa com X e botão de Exportar Resultado ao lado -->
+    <div class="search-box" style="display: flex; gap: 8px; align-items: center; margin-bottom: 16px;">
+      <div style="position: relative; flex: 1;">
+        <input type="text" id="search-hist" class="search-input" placeholder="🔍 Buscar por placa, TAG, nome ou telefone..." style="padding-right: 40px;">
+        <button class="search-clear-btn" id="search-hist-clear-btn">✖</button>
+      </div>
+      <button class="btn-export" id="btn-export-search-csv" style="display: none; white-space: nowrap;">Exportar Resultado</button>
     </div>
+
     <div class="historico-list" id="lista-historico"></div>
   </div>
 
@@ -315,15 +324,27 @@
       </div>
     </div>
 
+    <!-- Barra de Pesquisa dos Veículos com Botão X -->
     <div class="search-box">
       <input type="text" id="search-veiculos" class="search-input" placeholder="🔍 Consultar qualquer campo (Placa, Nome, Telefone, Modelo, Setor...)...">
+      <button class="search-clear-btn" id="search-veiculos-clear-btn">✖</button>
     </div>
 
-    <div class="section-divider vip">⭐ Base de Pré-Cadastros</div>
-    <div class="historico-list" id="lista-veiculos-precadastro"></div>
+    <!-- Efeito Sanfona: Base de Pré-Cadastros -->
+    <details class="accordion-details" open>
+      <summary class="accordion-summary">Base de Pré-Cadastros</summary>
+      <div class="accordion-body">
+        <div class="historico-list" id="lista-veiculos-precadastro"></div>
+      </div>
+    </details>
 
-    <div class="section-divider reg">📋 Histórico de Passagens pelo Pátio</div>
-    <div class="historico-list" id="lista-veiculos-historico"></div>
+    <!-- Efeito Sanfona: Histórico de Passagens pelo Pátio -->
+    <details class="accordion-details">
+      <summary class="accordion-summary">📋 Histórico de Passagens pelo Pátio</summary>
+      <div class="accordion-body">
+        <div class="historico-list" id="lista-veiculos-historico"></div>
+      </div>
+    </details>
   </div>
 
   <div id="sec-equipe" class="view-section">
@@ -345,6 +366,12 @@
         </select>
       </div>
       <button class="modal-btn btn-confirm" id="btn-cadastrar-usuario" style="width: 100%; margin-top: 10px;">Cadastrar Usuário</button>
+    </div>
+
+    <!-- Barra de busca da equipe com X para limpar -->
+    <div class="search-box">
+      <input type="text" id="search-equipe" class="search-input" placeholder="🔍 Buscar usuário por e-mail ou perfil...">
+      <button class="search-clear-btn" id="search-equipe-clear-btn">✖</button>
     </div>
 
     <div class="section-divider reg">👥 Usuários Cadastrados</div>
@@ -716,9 +743,8 @@
     document.getElementById('btn-export-json').addEventListener('click', exportarBackupJSON);
     document.getElementById('btn-trigger-import').addEventListener('click', () => document.getElementById('file-import-input').click());
     document.getElementById('file-import-input').addEventListener('change', importarBackupJSON);
-    document.getElementById('btn-reset-data').addEventListener('click', resetarTodosOsDados);
-    document.getElementById('btn-clear-hist').addEventListener('click', limparHistorico);
     document.getElementById('btn-export-csv').addEventListener('click', exportarCSV);
+    document.getElementById('btn-export-search-csv').addEventListener('click', exportarCSVPesquisa);
 
     document.getElementById('btn-cadastrar-usuario').addEventListener('click', cadastrarNovoUsuario);
     document.getElementById('btn-salvar-patio').addEventListener('click', salvarPatio);
@@ -731,7 +757,32 @@
 
     document.getElementById('btn-salvar-veiculo').addEventListener('click', salvarVeiculoPrecadastro);
     document.getElementById('btn-cancel-edit-veiculo').addEventListener('click', cancelarEdicaoVeiculo);
-    document.getElementById('search-veiculos').addEventListener('input', renderizarAbaVeiculos);
+
+    // Lógica do botão X na busca de Veículos
+    const searchVeiculos = document.getElementById('search-veiculos');
+    const searchVeiculosClear = document.getElementById('search-veiculos-clear-btn');
+    searchVeiculos.addEventListener('input', () => {
+      searchVeiculosClear.style.display = searchVeiculos.value ? 'block' : 'none';
+      renderizarAbaVeiculos();
+    });
+    searchVeiculosClear.addEventListener('click', () => {
+      searchVeiculos.value = '';
+      searchVeiculosClear.style.display = 'none';
+      renderizarAbaVeiculos();
+    });
+
+    // Lógica do botão X na busca da Equipe
+    const searchEquipe = document.getElementById('search-equipe');
+    const searchEquipeClear = document.getElementById('search-equipe-clear-btn');
+    searchEquipe.addEventListener('input', () => {
+      searchEquipeClear.style.display = searchEquipe.value ? 'block' : 'none';
+      ouvirListaUsuarios();
+    });
+    searchEquipeClear.addEventListener('click', () => {
+      searchEquipe.value = '';
+      searchEquipeClear.style.display = 'none';
+      ouvirListaUsuarios();
+    });
 
     function obterBaseCompletaVeiculos() {
       const mapa = new Map();
@@ -777,7 +828,7 @@
               <strong>${item.placa}</strong> ${iconeTag ? `<span class="auto-icon-tag" title="${item.tag}">${iconeTag}</span>` : ''} 
               - ${item.modelo || 'Sem modelo'} <small style="color:var(--text-sub);">(${item.nome || 'Sem nome'})</small>
             </div>
-            ${item.tipo === 'precadastro' ? `<span style="font-size:0.65rem; background:rgba(251,191,36,0.2); color:var(--vip-gold); padding:2px 4px; border-radius:4px; font-weight:bold;">PRE (${nomePatioOrigem})</span>` : ''}
+            ${item.tipo === 'precadastro' ? `<span style="font-size:0.65rem; background:rgba(59,130,246,0.2); color:var(--accent-blue); padding:2px 4px; border-radius:4px; font-weight:bold;">${nomePatioOrigem}</span>` : ''}
           `;
 
           div.addEventListener('click', () => {
@@ -820,7 +871,19 @@
       if (e.target !== document.getElementById('cad-veiculo-placa') && e.target !== cadAutoBox) cadAutoBox.style.display = 'none';
     });
 
-    document.getElementById('search-hist').addEventListener('input', renderizarHistorico);
+    // Lógica do botão X na busca do Histórico
+    const searchHistInput = document.getElementById('search-hist');
+    const searchHistClearBtn = document.getElementById('search-hist-clear-btn');
+    searchHistInput.addEventListener('input', () => {
+      searchHistClearBtn.style.display = searchHistInput.value ? 'block' : 'none';
+      renderizarHistorico();
+    });
+    searchHistClearBtn.addEventListener('click', () => {
+      searchHistInput.value = '';
+      searchHistClearBtn.style.display = 'none';
+      renderizarHistorico();
+    });
+
     document.getElementById('hist-filtro-periodo').addEventListener('change', renderizarHistorico);
 
     onAuthStateChanged(auth, async (user) => {
@@ -832,7 +895,7 @@
       const tabConfig = document.getElementById('btn-tab-config');
       const topActions = document.getElementById('top-data-actions');
       const btnExportCsv = document.getElementById('btn-export-csv');
-      const btnClearHist = document.getElementById('btn-clear-hist');
+      const btnExportSearchCsv = document.getElementById('btn-export-search-csv');
 
       if (user) {
         try {
@@ -852,7 +915,7 @@
           statusTxt.innerHTML = `⭐ <b>${user.email.split('@')[0]}</b> (Gestor)`;
           topActions.style.display = 'flex';
           btnExportCsv.style.display = 'inline-block';
-          btnClearHist.style.display = 'inline-block';
+          btnExportSearchCsv.style.display = 'inline-block';
           tabVeiculos.style.display = 'inline-block';
           tabEquipe.style.display = 'inline-block';
           tabConfig.style.display = 'inline-block';
@@ -861,7 +924,7 @@
           statusTxt.innerHTML = `🟢 <b>${user.email.split('@')[0]}</b> (Operador)`;
           topActions.style.display = 'none';
           btnExportCsv.style.display = 'none';
-          btnClearHist.style.display = 'none';
+          btnExportSearchCsv.style.display = 'none';
           tabVeiculos.style.display = 'none';
           tabEquipe.style.display = 'none';
           tabConfig.style.display = 'none';
@@ -877,7 +940,7 @@
         tabConfig.style.display = 'none';
         topActions.style.display = 'none';
         btnExportCsv.style.display = 'none';
-        btnClearHist.style.display = 'none';
+        btnExportSearchCsv.style.display = 'none';
         mudarAba('vagas');
       }
       renderizar();
@@ -1077,7 +1140,7 @@
       });
     }
 
-    // CRUD DE CATEGORIAS (ISOLADAS POR PÁTIO)
+    // CRUD DE CATEGORIAS
     function salvarCategoria() {
       if (perfilUsuario !== "gestor") return;
       const patioId = document.getElementById('cad-cat-patio').value;
@@ -1305,6 +1368,7 @@
       }
     }
 
+    // ABA VEÍCULOS: Tags limpas apenas com nome do pátio de origem
     function renderizarAbaVeiculos() {
       if (perfilUsuario !== "gestor") return;
 
@@ -1338,7 +1402,7 @@
           card.innerHTML = `
             <div class="std-top">
               <span class="std-title">🚘 ${v.placa} ${v.tag ? `<small style="font-size:0.75rem; color:var(--vip-gold);">[${v.tag}]</small>` : ''}</span>
-              <span class="std-badge gold">⭐ Pré-Cadastrado (${nomePatio})</span>
+              <span class="std-badge gold">${nomePatio}</span>
             </div>
             <div class="std-details">
               <div><strong>Modelo:</strong> ${v.modelo || 'Não informado'}</div>
@@ -1499,9 +1563,11 @@
       } catch (error) { alert('Erro ao cadastrar usuário: ' + error.message); }
     }
 
+    // ABA EQUIPE: Ordenação (1º Gestores, 2º Operadores, ambos em ordem alfabética por e-mail) + Busca
     function ouvirListaUsuarios() {
       onSnapshot(collection(db, "usuarios"), (snapshot) => {
         const container = document.getElementById('lista-equipe');
+        const termoBusca = (document.getElementById('search-equipe') ? document.getElementById('search-equipe').value : '').toLowerCase().trim();
         container.innerHTML = '';
 
         if (snapshot.empty) {
@@ -1509,9 +1575,39 @@
           return;
         }
 
+        let listaUsuarios = [];
         snapshot.forEach(docSnap => {
-          const u = docSnap.data();
-          const uid = docSnap.id;
+          listaUsuarios.push({ uid: docSnap.id, ...docSnap.data() });
+        });
+
+        // Filtrar termo
+        if (termoBusca) {
+          listaUsuarios = listaUsuarios.filter(u => 
+            (u.email && u.email.toLowerCase().includes(termoBusca)) || 
+            (u.funcao && u.funcao.toLowerCase().includes(termoBusca))
+          );
+        }
+
+        // Ordenar: Gestor antes de Operador e ordem alfabética pelo email
+        listaUsuarios.sort((a, b) => {
+          const roleA = (a.funcao || 'operador').toLowerCase();
+          const roleB = (b.funcao || 'operador').toLowerCase();
+
+          if (roleA === 'gestor' && roleB !== 'gestor') return -1;
+          if (roleA !== 'gestor' && roleB === 'gestor') return 1;
+
+          const emailA = (a.email || '').toLowerCase();
+          const emailB = (b.email || '').toLowerCase();
+          return emailA.localeCompare(emailB);
+        });
+
+        if (listaUsuarios.length === 0) {
+          container.innerHTML = '<div class="empty-msg">Nenhum usuário encontrado para a busca.</div>';
+          return;
+        }
+
+        listaUsuarios.forEach(u => {
+          const uid = u.uid;
           const card = document.createElement('div');
           card.className = 'user-card';
           const role = (u.funcao || 'operador').toLowerCase();
@@ -1767,7 +1863,6 @@
       let ocupadasTotais = 0;
       let livresTotais = 0;
 
-      // Vagas e Categorias Filtadas EXCLUSIVAMENTE para o Pátio Selecionado
       const vagasDoPatioAtivo = vagas.filter(v => (v.patioId || 'patio_batel') === patioAtivoId);
       const categoriasDoPatioAtivo = categoriasVagas.filter(cat => (cat.patioId || 'patio_batel') === patioAtivoId);
 
@@ -1856,18 +1951,13 @@
       else fillBar.style.backgroundColor = 'var(--green-free)';
     }
 
-    function renderizarHistorico() {
-      if (perfilUsuario === "visitante") return;
-
-      const container = document.getElementById('lista-historico');
+    function obterHistoricoFiltradoGeral() {
       const busca = document.getElementById('search-hist').value.toUpperCase().trim();
       const filtroPatio = document.getElementById('hist-filtro-patio').value;
       const filtroPeriodo = document.getElementById('hist-filtro-periodo').value;
-      container.innerHTML = '';
-
       const agora = new Date();
 
-      const filtrados = historico.filter(h => {
+      return historico.filter(h => {
         if (filtroPatio !== 'todos' && h.patioId !== filtroPatio) return false;
 
         const matchText = (h.placa && h.placa.includes(busca)) ||
@@ -1893,6 +1983,15 @@
 
         return true;
       });
+    }
+
+    function renderizarHistorico() {
+      if (perfilUsuario === "visitante") return;
+
+      const container = document.getElementById('lista-historico');
+      container.innerHTML = '';
+
+      const filtrados = obterHistoricoFiltradoGeral();
 
       document.getElementById('cnt-historico').innerText = `Registros: ${filtrados.length}`;
 
@@ -2218,29 +2317,7 @@
       event.target.value = '';
     }
 
-    function resetarTodosOsDados() {
-      if (perfilUsuario !== "gestor") return;
-      if (confirm('⚠️ ATENÇÃO (GESTOR): Deseja apagar TODOS os veículos e o histórico da nuvem?')) {
-        if (confirm('Esta ação afetará TODOS os usuários. Deseja continuar?')) {
-          patios = [...PATIOS_PADRAO];
-          categoriasVagas = [...CATEGORIAS_PADRAO];
-          vagas = criarEstruturaPadrao();
-          historico = [];
-          veiculosPrecadastrados = [];
-          salvar();
-          alert('Sistema resetado na nuvem.');
-        }
-      }
-    }
-
-    function limparHistorico() {
-      if (perfilUsuario !== "gestor") return;
-      if (confirm('Deseja realmente apagar o histórico da nuvem?')) {
-        historico = [];
-        salvar();
-      }
-    }
-
+    // Exportar todo o banco (mantendo filtros de pátio e período)
     function exportarCSV() {
       if (perfilUsuario !== "gestor") return;
       if (historico.length === 0) return alert('Não há dados no histórico para exportar.');
@@ -2266,8 +2343,22 @@
 
       if (filtrados.length === 0) return alert('Nenhum registro encontrado no período/pátio selecionado.');
 
+      gerarDownloadCSV(filtrados, `relatorio_estacionamento_${filtroPatio}_${new Date().toISOString().slice(0,10)}.csv`);
+    }
+
+    // Exportar apenas o resultado visível filtrado na busca
+    function exportarCSVPesquisa() {
+      if (perfilUsuario !== "gestor") return;
+      const filtrados = obterHistoricoFiltradoGeral();
+
+      if (filtrados.length === 0) return alert('Nenhum registro visível na busca para exportar.');
+
+      gerarDownloadCSV(filtrados, `resultado_busca_historico_${new Date().toISOString().slice(0,10)}.csv`);
+    }
+
+    function gerarDownloadCSV(dados, nomeArquivo) {
       let csv = 'Patio,Vaga,Placa,TAG,Modelo,Condutor,Telefone,Setor,Data/Hora Entrada,Data/Hora Saida,Tempo Permanencia,Operador Entrada,Operador Saida\n';
-      filtrados.forEach(h => {
+      dados.forEach(h => {
         const nomePatio = h.patioNome || obterNomePatio(h.patioId);
         csv += `"${nomePatio}","${h.nomeVaga}","${h.placa}","${h.tag || ''}","${h.modelo || ''}","${h.nome || ''}","${h.telefone || ''}","${h.setor || ''}","${formatarDataHora(h.horaEntrada)}","${formatarDataHora(h.horaSaida)}","${h.permanencia}","${h.operadorEntrada || 'Desconhecido'}","${h.operadorSaida || 'Desconhecido'}"\n`;
       });
@@ -2276,7 +2367,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `relatorio_estacionamento_${filtroPatio}_${new Date().toISOString().slice(0,10)}.csv`);
+      link.setAttribute('download', nomeArquivo);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
