@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Est@r BATEL - v1.1</title>
+  <title>Est@r BATEL - v1.2</title>
 
   <!-- Favicon e Ícone Web App -->
   <link rel="icon" type="image/png" href="favicon.png">
@@ -75,13 +75,9 @@
       .dashboard-grid { grid-template-columns: repeat(4, 1fr); }
     }
 
-    .dash-row { display: grid; grid-template-columns: 90px 1fr 1fr 1fr; align-items: center; background: rgba(255, 255, 255, 0.03); padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.8rem; }
+    .dash-row { display: grid; grid-template-columns: 100px 1fr 1fr 1fr; align-items: center; background: rgba(255, 255, 255, 0.03); padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.8rem; }
     .dash-row.general { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); }
-    .dash-label { font-weight: 800; display: flex; align-items: center; gap: 4px; }
-    .dash-label.reg { color: var(--accent-blue); }
-    .dash-label.ext { color: var(--extra-orange); }
-    .dash-label.vip { color: var(--vip-gold); }
-    .dash-label.gen { color: #fff; }
+    .dash-label { font-weight: 800; display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .dash-cell { text-align: center; }
     .dash-val { font-weight: 800; font-size: 0.95rem; }
     .dash-sub { font-size: 0.65rem; color: var(--text-sub); }
@@ -93,15 +89,11 @@
     .view-section { display: none; }
     .view-section.active { display: block; }
 
-    /* Divisores Recolhíveis (Accordion) */
+    /* Divisores Recolhíveis */
     .section-divider { font-size: 0.9rem; font-weight: 800; margin: 16px 0 10px 0; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; letter-spacing: 0.5px; cursor: pointer; user-select: none; }
     .section-divider-title { display: flex; align-items: center; gap: 8px; }
     .section-toggle-icon { font-size: 0.8rem; transition: transform 0.2s ease; }
     .section-divider.collapsed .section-toggle-icon { transform: rotate(-90deg); }
-
-    .section-divider.reg { color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.3); }
-    .section-divider.ext { color: var(--extra-orange); border-color: rgba(249, 115, 22, 0.3); }
-    .section-divider.vip { color: var(--vip-gold); border-color: rgba(251, 191, 36, 0.3); }
 
     .grid-vagas-wrapper { transition: max-height 0.3s ease, opacity 0.2s ease; overflow: hidden; }
     .grid-vagas-wrapper.collapsed { display: none; }
@@ -212,14 +204,14 @@
   <header>
     <div class="header-top">
       <div class="header-title">
-        <h1>🅿️ Est@r <span style="font-size: 0.7rem; background: #22c55e; color: #000; padding: 2px 6px; border-radius: 10px; margin-left: 6px;">BATEL v1.1</span></h1>
+        <h1>🅿️ Est@r <span style="font-size: 0.7rem; background: #22c55e; color: #000; padding: 2px 6px; border-radius: 10px; margin-left: 6px;">BATEL v1.2</span></h1>
       </div>
       <div class="header-btns">
         <button class="nav-btn active" id="btn-tab-vagas">Vagas</button>
         <button class="nav-btn" id="btn-tab-hist" style="display: none;">Histórico</button>
         <button class="nav-btn" id="btn-tab-veiculos" style="display: none;">🚘 Veículos</button>
         <button class="nav-btn" id="btn-tab-equipe" style="display: none;">👥 Equipe</button>
-        <button class="nav-btn" id="btn-tab-config" style="display: none;">⚙️ Vagas</button>
+        <button class="nav-btn" id="btn-tab-config" style="display: none;">⚙️ Vagas & Categorias</button>
       </div>
     </div>
 
@@ -245,35 +237,8 @@
       </div>
     </div>
 
-    <div class="dashboard-grid">
-      <div class="dash-row">
-        <div class="dash-label reg">🔹 Regulares</div>
-        <div class="dash-cell"><div class="dash-val" id="stat-reg-tot">14</div><div class="dash-sub">TOTAL</div></div>
-        <div class="dash-cell"><div class="dash-val" style="color:var(--green-free);" id="stat-reg-liv">14</div><div class="dash-sub">LIVRES</div></div>
-        <div class="dash-cell"><div class="dash-val" style="color:var(--red-busy);" id="stat-reg-ocu">0</div><div class="dash-sub">OCUPADAS</div></div>
-      </div>
-
-      <div class="dash-row">
-        <div class="dash-label ext">🔸 Extras</div>
-        <div class="dash-cell"><div class="dash-val" id="stat-ext-tot">6</div><div class="dash-sub">TOTAL</div></div>
-        <div class="dash-cell"><div class="dash-val" style="color:var(--green-free);" id="stat-ext-liv">6</div><div class="dash-sub">LIVRES</div></div>
-        <div class="dash-cell"><div class="dash-val" style="color:var(--red-busy);" id="stat-ext-ocu">0</div><div class="dash-sub">OCUPADAS</div></div>
-      </div>
-
-      <div class="dash-row">
-        <div class="dash-label vip">⭐ VIP</div>
-        <div class="dash-cell"><div class="dash-val" id="stat-vip-tot">5</div><div class="dash-sub">TOTAL</div></div>
-        <div class="dash-cell"><div class="dash-val" style="color:var(--green-free);" id="stat-vip-liv">5</div><div class="dash-sub">LIVRES</div></div>
-        <div class="dash-cell"><div class="dash-val" style="color:var(--red-busy);" id="stat-vip-ocu">0</div><div class="dash-sub">OCUPADAS</div></div>
-      </div>
-
-      <div class="dash-row general">
-        <div class="dash-label gen">📊 GERAL</div>
-        <div class="dash-cell"><div class="dash-val" style="color:var(--accent-blue);" id="stat-gen-tot">25</div><div class="dash-sub">CAPACIDADE</div></div>
-        <div class="dash-cell"><div class="dash-val" style="color:var(--green-free);" id="stat-gen-liv">25</div><div class="dash-sub">LIVRES</div></div>
-        <div class="dash-cell"><div class="dash-val" style="color:var(--red-busy);" id="stat-gen-ocu">0</div><div class="dash-sub">OCUPADAS</div></div>
-      </div>
-    </div>
+    <!-- Dashboard Gerado Dinamicamente -->
+    <div class="dashboard-grid" id="dashboard-dinamico"></div>
   </header>
 
   <div id="sec-vagas" class="view-section active">
@@ -282,38 +247,8 @@
       <button class="search-clear-btn" id="search-clear-btn">✖</button>
     </div>
 
-    <!-- Divisor Regulares recolhível -->
-    <div class="section-divider reg" id="divider-reg">
-      <div class="section-divider-title">
-        <span>🔹 Vagas Regulares</span>
-      </div>
-      <span class="section-toggle-icon">▼</span>
-    </div>
-    <div class="grid-vagas-wrapper" id="wrapper-reg">
-      <div class="grid-vagas" id="grid-vagas-regulares"></div>
-    </div>
-
-    <!-- Divisor Extras recolhível -->
-    <div class="section-divider ext" id="divider-ext">
-      <div class="section-divider-title">
-        <span>🔸 Vagas Extras</span>
-      </div>
-      <span class="section-toggle-icon">▼</span>
-    </div>
-    <div class="grid-vagas-wrapper" id="wrapper-ext">
-      <div class="grid-vagas" id="grid-vagas-extras"></div>
-    </div>
-
-    <!-- Divisor VIP recolhível -->
-    <div class="section-divider vip" id="divider-vip">
-      <div class="section-divider-title">
-        <span>⭐ Vagas VIP</span>
-      </div>
-      <span class="section-toggle-icon">▼</span>
-    </div>
-    <div class="grid-vagas-wrapper" id="wrapper-vip">
-      <div class="grid-vagas" id="grid-vagas-vip"></div>
-    </div>
+    <!-- Container Dinâmico de Categorias e Vagas -->
+    <div id="container-categorias-vagas"></div>
   </div>
 
   <div id="sec-historico" class="view-section">
@@ -419,28 +354,51 @@
   </div>
 
   <div id="sec-config" class="view-section">
+    <!-- CRUD de Tipos / Categorias de Vagas -->
     <div class="form-card">
-      <h2 style="font-size: 1.1rem; margin-bottom: 14px; color: var(--vip-gold);" id="form-vaga-titulo">➕ Adicionar Nova Vaga</h2>
+      <h2 style="font-size: 1.1rem; margin-bottom: 14px; color: var(--vip-gold);" id="form-cat-titulo">🏷️ Gerenciar Tipos/Categorias de Vagas</h2>
+      <div class="form-group">
+        <label class="form-label">NOME DA CATEGORIA *</label>
+        <input type="text" id="cad-cat-nome" class="modal-input" placeholder="Ex: Regulares, PCD, Motos, Idoso">
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">ÍCONE / EMOJI *</label>
+          <input type="text" id="cad-cat-icone" class="modal-input" placeholder="Ex: 🔹, ♿, 🏍️, ⭐" maxlength="4">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">COR DE DESTAQUE *</label>
+          <input type="color" id="cad-cat-cor" class="modal-input" value="#3b82f6" style="padding: 4px; height: 42px; cursor: pointer;">
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <button class="modal-btn btn-cancel" id="btn-cancel-edit-cat" style="display: none;">Cancelar Edição</button>
+        <button class="modal-btn btn-confirm" id="btn-salvar-categoria" style="width: 100%;">Salvar Categoria</button>
+      </div>
+
+      <div class="section-divider vip" style="margin-top: 16px;">🏷️ Categorias Cadastradas</div>
+      <div class="vagas-config-list" id="lista-categorias-config"></div>
+    </div>
+
+    <!-- Gerenciamento de Vagas -->
+    <div class="form-card">
+      <h2 style="font-size: 1.1rem; margin-bottom: 14px; color: var(--accent-blue);" id="form-vaga-titulo">➕ Adicionar Nova Vaga</h2>
       <div class="form-group">
         <label class="form-label">NOME / CÓDIGO DA VAGA *</label>
-        <input type="text" id="nova-vaga-nome" class="modal-input" placeholder="Ex: 11A, VIP 6, Vaga C1">
+        <input type="text" id="nova-vaga-nome" class="modal-input" placeholder="Ex: 11A, VIP 6, PCD 1">
       </div>
       <div class="form-group">
         <label class="form-label">CATEGORIA DA VAGA *</label>
-        <select id="nova-vaga-categoria" class="modal-select">
-          <option value="regular">Regular</option>
-          <option value="extra">Extra</option>
-          <option value="vip">VIP</option>
-        </select>
+        <select id="nova-vaga-categoria" class="modal-select"></select>
       </div>
       <div style="display: flex; gap: 8px; margin-top: 10px;">
         <button class="modal-btn btn-cancel" id="btn-cancel-edit-vaga" style="display: none;">Cancelar Edição</button>
         <button class="modal-btn btn-confirm" id="btn-adicionar-vaga" style="width: 100%;">Criar Vaga</button>
       </div>
-    </div>
 
-    <div class="section-divider vip">⚙️ Vagas Existentes no Pátio</div>
-    <div class="vagas-config-list" id="lista-vagas-config"></div>
+      <div class="section-divider reg" style="margin-top: 16px;">⚙️ Vagas Existentes no Pátio</div>
+      <div class="vagas-config-list" id="lista-vagas-config"></div>
+    </div>
   </div>
 
   <footer>
@@ -581,13 +539,22 @@
     let vagaSelecionada = null;
     let modoEdicao = false;
     let vagaEmEdicaoId = null;
+    let catEmEdicaoId = null;
     let veiculoEmEdicaoPlaca = null;
     let eEdicaoHistoricoPassagem = false;
+
     let vagas = [];
+    let categoriasVagas = [];
     let historico = [];
     let veiculosPrecadastrados = [];
     let perfilUsuario = "visitante";
     let segundosDesdeAtualizacao = 0;
+
+    const CATEGORIAS_PADRAO = [
+      { id: "cat_regular", nome: "Regulares", icone: "🔹", cor: "#3b82f6" },
+      { id: "cat_extra", nome: "Extras", icone: "🔸", cor: "#f97316" },
+      { id: "cat_vip", nome: "VIP", icone: "⭐", cor: "#fbbf24" }
+    ];
 
     const NOMES_REGULARES_DEF = Array.from({ length: 7 }, (_, i) => [`${i + 1}A`, `${i + 1}B`]).flat();
     const NOMES_EXTRAS_DEF = Array.from({ length: 3 }, (_, i) => [`${i + 8}A`, `${i + 8}B`]).flat();
@@ -652,35 +619,14 @@
     function criarEstruturaPadrao() {
       const arr = [];
       let id = 1;
-      NOMES_REGULARES_DEF.forEach(n => arr.push({ id: id++, nomeVaga: n, categoria: 'regular', ocupada: false, statusEspecial: null }));
-      NOMES_EXTRAS_DEF.forEach(n => arr.push({ id: id++, nomeVaga: n, categoria: 'extra', ocupada: false, statusEspecial: null }));
-      NOMES_VIP_DEF.forEach(n => arr.push({ id: id++, nomeVaga: n, categoria: 'vip', ocupada: false, statusEspecial: null }));
+      NOMES_REGULARES_DEF.forEach(n => arr.push({ id: id++, nomeVaga: n, categoria: 'cat_regular', ocupada: false, statusEspecial: null }));
+      NOMES_EXTRAS_DEF.forEach(n => arr.push({ id: id++, nomeVaga: n, categoria: 'cat_extra', ocupada: false, statusEspecial: null }));
+      NOMES_VIP_DEF.forEach(n => arr.push({ id: id++, nomeVaga: n, categoria: 'cat_vip', ocupada: false, statusEspecial: null }));
       return arr;
     }
 
+    categoriasVagas = [...CATEGORIAS_PADRAO];
     vagas = criarEstruturaPadrao();
-
-    // Lógica das Seções Recolhíveis (Collapse/Accordion)
-    function configurarDivisoresRecolhiveis() {
-      const divisores = [
-        { dividerId: 'divider-reg', wrapperId: 'wrapper-reg' },
-        { dividerId: 'divider-ext', wrapperId: 'wrapper-ext' },
-        { dividerId: 'divider-vip', wrapperId: 'wrapper-vip' }
-      ];
-
-      divisores.forEach(item => {
-        const div = document.getElementById(item.dividerId);
-        const wrap = document.getElementById(item.wrapperId);
-        if (div && wrap) {
-          div.addEventListener('click', () => {
-            div.classList.toggle('collapsed');
-            wrap.classList.toggle('collapsed');
-          });
-        }
-      });
-    }
-
-    configurarDivisoresRecolhiveis();
 
     const inputTelefone = document.getElementById('input-telefone');
     inputTelefone.addEventListener('input', (e) => {
@@ -727,6 +673,9 @@
     document.getElementById('btn-cadastrar-usuario').addEventListener('click', cadastrarNovoUsuario);
     document.getElementById('btn-adicionar-vaga').addEventListener('click', salvarNovaOuEditadaVaga);
     document.getElementById('btn-cancel-edit-vaga').addEventListener('click', cancelarEdicaoVaga);
+
+    document.getElementById('btn-salvar-categoria').addEventListener('click', salvarCategoria);
+    document.getElementById('btn-cancel-edit-cat').addEventListener('click', cancelarEdicaoCategoria);
 
     document.getElementById('btn-salvar-veiculo').addEventListener('click', salvarVeiculoPrecadastro);
     document.getElementById('btn-cancel-edit-veiculo').addEventListener('click', cancelarEdicaoVeiculo);
@@ -886,23 +835,148 @@
       resetarTimerAtualizacao();
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.vagas) vagas = data.vagas;
+        if (data.categoriasVagas && Array.isArray(data.categoriasVagas) && data.categoriasVagas.length > 0) {
+          categoriasVagas = data.categoriasVagas;
+        } else {
+          categoriasVagas = [...CATEGORIAS_PADRAO];
+        }
+
+        if (data.vagas) {
+          vagas = data.vagas.map(v => {
+            if (v.categoria === 'regular') v.categoria = 'cat_regular';
+            if (v.categoria === 'extra') v.categoria = 'cat_extra';
+            if (v.categoria === 'vip') v.categoria = 'cat_vip';
+            return v;
+          });
+        }
         if (data.historico) historico = data.historico;
         if (data.veiculosPrecadastrados) veiculosPrecadastrados = data.veiculosPrecadastrados;
       } else {
         salvar();
       }
+      atualizarSelectCategoriasModal();
       renderizar();
       renderizarHistorico();
       renderizarAbaVeiculos();
+      renderizarListaCategoriasConfig();
       renderizarListaVagasConfig();
     });
 
     async function salvar() {
       if (perfilUsuario === "visitante") return;
       try {
-        await setDoc(docRef, { vagas, historico, veiculosPrecadastrados });
+        await setDoc(docRef, { vagas, categoriasVagas, historico, veiculosPrecadastrados });
       } catch (e) { console.error("Erro ao salvar no Firestore: ", e); }
+    }
+
+    // CRUD DE CATEGORIAS
+    function salvarCategoria() {
+      if (perfilUsuario !== "gestor") return;
+      const nome = document.getElementById('cad-cat-nome').value.trim();
+      const icone = document.getElementById('cad-cat-icone').value.trim() || '🏷️';
+      const cor = document.getElementById('cad-cat-cor').value;
+
+      if (!nome) return alert('Por favor, informe o nome da categoria.');
+
+      if (catEmEdicaoId !== null) {
+        const idx = categoriasVagas.findIndex(c => c.id === catEmEdicaoId);
+        if (idx !== -1) {
+          categoriasVagas[idx].nome = nome;
+          categoriasVagas[idx].icone = icone;
+          categoriasVagas[idx].cor = cor;
+          salvar();
+          alert('Categoria atualizada com sucesso!');
+        }
+        cancelarEdicaoCategoria();
+      } else {
+        const novoId = 'cat_' + Date.now();
+        categoriasVagas.push({ id: novoId, nome, icone, cor });
+        salvar();
+        alert(`Categoria "${nome}" cadastrada com sucesso!`);
+        document.getElementById('cad-cat-nome').value = '';
+        document.getElementById('cad-cat-icone').value = '';
+      }
+    }
+
+    function carregarCategoriaParaEdicao(id) {
+      const cat = categoriasVagas.find(c => c.id === id);
+      if (!cat) return;
+
+      catEmEdicaoId = id;
+      document.getElementById('form-cat-titulo').innerText = `✏️ Editar Categoria - ${cat.nome}`;
+      document.getElementById('cad-cat-nome').value = cat.nome;
+      document.getElementById('cad-cat-icone').value = cat.icone;
+      document.getElementById('cad-cat-cor').value = cat.cor || '#3b82f6';
+
+      document.getElementById('btn-salvar-categoria').innerText = 'Salvar Alterações';
+      document.getElementById('btn-cancel-edit-cat').style.display = 'block';
+    }
+
+    function cancelarEdicaoCategoria() {
+      catEmEdicaoId = null;
+      document.getElementById('form-cat-titulo').innerText = '🏷️ Gerenciar Tipos/Categorias de Vagas';
+      document.getElementById('cad-cat-nome').value = '';
+      document.getElementById('cad-cat-icone').value = '';
+      document.getElementById('cad-cat-cor').value = '#3b82f6';
+
+      document.getElementById('btn-salvar-categoria').innerText = 'Salvar Categoria';
+      document.getElementById('btn-cancel-edit-cat').style.display = 'none';
+    }
+
+    function excluirCategoria(id) {
+      if (perfilUsuario !== "gestor") return;
+      const vagasVinculadas = vagas.filter(v => v.categoria === id);
+
+      if (vagasVinculadas.length > 0) {
+        return alert(`Não é possível excluir esta categoria. Existem ${vagasVinculadas.length} vaga(s) atreladas a ela. Reatribua as vagas antes de excluir.`);
+      }
+
+      const cat = categoriasVagas.find(c => c.id === id);
+      if (confirm(`Deseja realmente remover a categoria "${cat ? cat.nome : id}"?`)) {
+        categoriasVagas = categoriasVagas.filter(c => c.id !== id);
+        salvar();
+        alert('Categoria removida com sucesso!');
+      }
+    }
+
+    function renderizarListaCategoriasConfig() {
+      const container = document.getElementById('lista-categorias-config');
+      if (!container) return;
+      container.innerHTML = '';
+
+      categoriasVagas.forEach(cat => {
+        const item = document.createElement('div');
+        item.className = 'vaga-config-item';
+        item.style.borderLeftColor = cat.cor || '#3b82f6';
+        item.innerHTML = `
+          <div>
+            <span style="font-size:1.1rem; margin-right:6px;">${cat.icone || '🏷️'}</span>
+            <strong>${cat.nome}</strong>
+          </div>
+          <div class="vaga-config-actions">
+            <button class="btn-sm-edit" data-id="${cat.id}">Editar</button>
+            <button class="btn-sm-del" data-id="${cat.id}">Excluir</button>
+          </div>
+        `;
+
+        item.querySelector('.btn-sm-edit').addEventListener('click', () => carregarCategoriaParaEdicao(cat.id));
+        item.querySelector('.btn-sm-del').addEventListener('click', () => excluirCategoria(cat.id));
+
+        container.appendChild(item);
+      });
+    }
+
+    function atualizarSelectCategoriasModal() {
+      const selectConfig = document.getElementById('nova-vaga-categoria');
+      if (!selectConfig) return;
+      selectConfig.innerHTML = '';
+
+      categoriasVagas.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.innerText = `${cat.icone || '🏷️'} ${cat.nome}`;
+        selectConfig.appendChild(opt);
+      });
     }
 
     function salvarVeiculoPrecadastro() {
@@ -1130,6 +1204,7 @@
       } else if (aba === 'config' && perfilUsuario === "gestor") {
         document.getElementById('sec-config').classList.add('active');
         document.getElementById('btn-tab-config').classList.add('active');
+        renderizarListaCategoriasConfig();
         renderizarListaVagasConfig();
       }
     }
@@ -1258,12 +1333,15 @@
       container.innerHTML = '';
 
       vagas.forEach(v => {
+        const cat = categoriasVagas.find(c => c.id === v.categoria);
         const item = document.createElement('div');
         item.className = 'vaga-config-item';
+        if (cat) item.style.borderLeftColor = cat.cor || '#3b82f6';
+
         item.innerHTML = `
           <div>
             <strong>Vaga ${v.nomeVaga}</strong> 
-            <span style="font-size: 0.75rem; color: var(--text-sub);">(${v.categoria.toUpperCase()})</span>
+            <span style="font-size: 0.75rem; color: var(--text-sub);">(${cat ? cat.nome.toUpperCase() : 'SEM CATEGORIA'})</span>
             ${v.ocupada ? '<span style="color: var(--red-busy); font-size: 0.75rem; margin-left:6px;">[Ocupada]</span>' : ''}
           </div>
           <div class="vaga-config-actions">
@@ -1286,6 +1364,7 @@
       const categoria = document.getElementById('nova-vaga-categoria').value;
 
       if (!nomeVaga) return alert('Informe o nome/código da vaga.');
+      if (!categoria) return alert('Crie e selecione uma categoria válida para a vaga.');
 
       if (vagaEmEdicaoId !== null) {
         const idx = vagas.findIndex(v => v.id === vagaEmEdicaoId);
@@ -1342,7 +1421,7 @@
       }
     }
 
-    function renderizarCardVaga(v, termoBusca) {
+    function renderizarCardVaga(v, termoBusca, cat) {
       const telFormatado = formatarTelefoneExibicao(v.telefone || '');
       const numWa = v.telefone ? v.telefone.replace(/\D/g, '') : '';
 
@@ -1360,11 +1439,11 @@
       const card = document.createElement('div');
       const estaBloqueada = v.statusEspecial && v.statusEspecial !== 'livre';
 
-      card.className = `vaga-card cat-${v.categoria} ${estaBloqueada ? 'bloqueada' : (v.ocupada ? 'ocupada' : 'livre')}`;
+      card.className = `vaga-card ${estaBloqueada ? 'bloqueada' : (v.ocupada ? 'ocupada' : 'livre')}`;
 
       const hora = v.horaEntrada ? formatarHora(v.horaEntrada) : '';
       const duracao = v.horaEntrada ? calcularPermanenciaVal(v.horaEntrada, null) : '';
-      const iconeCat = v.categoria === 'vip' ? '⭐ ' : (v.categoria === 'extra' ? '🔸 ' : '');
+      const iconeCat = cat ? `${cat.icone} ` : '';
       const podeOperar = perfilUsuario === "operador" || perfilUsuario === "gestor";
 
       let badgeTxt = 'Livre';
@@ -1443,65 +1522,91 @@
     }
 
     function renderizar() {
-      const gridReg = document.getElementById('grid-vagas-regulares');
-      const gridExt = document.getElementById('grid-vagas-extras');
-      const gridVip = document.getElementById('grid-vagas-vip');
+      const containerCategorias = document.getElementById('container-categorias-vagas');
+      const dashContainer = document.getElementById('dashboard-dinamico');
       const termoBusca = document.getElementById('search-input').value.toUpperCase().trim();
 
-      gridReg.innerHTML = ''; gridExt.innerHTML = ''; gridVip.innerHTML = '';
-
-      let regLiv = 0, regOcu = 0, regTot = 0;
-      let extLiv = 0, extOcu = 0, extTot = 0;
-      let vipLiv = 0, vipOcu = 0, vipTot = 0;
+      containerCategorias.innerHTML = '';
+      dashContainer.innerHTML = '';
 
       let capacidadeRealTotal = 0;
       let ocupadasTotais = 0;
+      let livresTotais = 0;
 
-      vagas.forEach(v => {
-        const estaBloqueada = v.statusEspecial && v.statusEspecial !== 'livre';
+      // Renderiza cada Categoria Dinamicamente
+      categoriasVagas.forEach(cat => {
+        let catTot = 0, catLiv = 0, catOcu = 0;
+        const vagasDaCat = vagas.filter(v => v.categoria === cat.id);
 
-        if (v.categoria === 'regular') {
-          regTot++;
-          if (v.ocupada) regOcu++; else if (!estaBloqueada) regLiv++;
-        } else if (v.categoria === 'extra') {
-          extTot++;
-          if (v.ocupada) extOcu++; else if (!estaBloqueada) extLiv++;
-        } else if (v.categoria === 'vip') {
-          vipTot++;
-          if (v.ocupada) vipOcu++; else if (!estaBloqueada) vipLiv++;
-        }
+        vagasDaCat.forEach(v => {
+          const estaBloqueada = v.statusEspecial && v.statusEspecial !== 'livre';
+          catTot++;
+          if (v.ocupada) catOcu++; else if (!estaBloqueada) catLiv++;
 
-        if (!estaBloqueada) {
-          capacidadeRealTotal++;
-          if (v.ocupada) ocupadasTotais++;
-        }
+          if (!estaBloqueada) {
+            capacidadeRealTotal++;
+            if (v.ocupada) ocupadasTotais++; else livresTotais++;
+          }
+        });
 
-        const card = renderizarCardVaga(v, termoBusca);
-        if (card) {
-          if (v.categoria === 'regular') gridReg.appendChild(card);
-          else if (v.categoria === 'extra') gridExt.appendChild(card);
-          else if (v.categoria === 'vip') gridVip.appendChild(card);
-        }
+        // 1. Gera linha correspondente no Dashboard Dinâmico
+        const dashRow = document.createElement('div');
+        dashRow.className = 'dash-row';
+        dashRow.innerHTML = `
+          <div class="dash-label" style="color:${cat.cor || '#3b82f6'};">${cat.icone || '🏷️'} ${cat.nome}</div>
+          <div class="dash-cell"><div class="dash-val">${catTot}</div><div class="dash-sub">TOTAL</div></div>
+          <div class="dash-cell"><div class="dash-val" style="color:var(--green-free);">${catLiv}</div><div class="dash-sub">LIVRES</div></div>
+          <div class="dash-cell"><div class="dash-val" style="color:var(--red-busy);">${catOcu}</div><div class="dash-sub">OCUPADAS</div></div>
+        `;
+        dashContainer.appendChild(dashRow);
+
+        // 2. Gera Seção Recolhível e Grid de Vagas da Categoria
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'section-divider';
+        sectionDiv.style.color = cat.cor || '#3b82f6';
+        sectionDiv.style.borderColor = cat.cor ? `${cat.cor}66` : 'rgba(59, 130, 246, 0.3)';
+
+        sectionDiv.innerHTML = `
+          <div class="section-divider-title">
+            <span>${cat.icone || '🏷️'} Vagas ${cat.nome} (${catLiv} livres / ${catTot} total)</span>
+          </div>
+          <span class="section-toggle-icon">▼</span>
+        `;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'grid-vagas-wrapper';
+
+        const grid = document.createElement('div');
+        grid.className = 'grid-vagas';
+
+        vagasDaCat.forEach(v => {
+          const card = renderizarCardVaga(v, termoBusca, cat);
+          if (card) grid.appendChild(card);
+        });
+
+        wrapper.appendChild(grid);
+        containerCategorias.appendChild(sectionDiv);
+        containerCategorias.appendChild(wrapper);
+
+        // Evento do Accordion
+        sectionDiv.addEventListener('click', () => {
+          sectionDiv.classList.toggle('collapsed');
+          wrapper.classList.toggle('collapsed');
+        });
       });
 
-      document.getElementById('stat-reg-tot').innerText = regTot;
-      document.getElementById('stat-reg-liv').innerText = regLiv;
-      document.getElementById('stat-reg-ocu').innerText = regOcu;
+      // Adiciona linha GERAL no Dashboard
+      const dashGeneral = document.createElement('div');
+      dashGeneral.className = 'dash-row general';
+      dashGeneral.innerHTML = `
+        <div class="dash-label gen">📊 GERAL</div>
+        <div class="dash-cell"><div class="dash-val" style="color:var(--accent-blue);">${capacidadeRealTotal}</div><div class="dash-sub">CAPACIDADE</div></div>
+        <div class="dash-cell"><div class="dash-val" style="color:var(--green-free);">${livresTotais}</div><div class="dash-sub">LIVRES</div></div>
+        <div class="dash-cell"><div class="dash-val" style="color:var(--red-busy);">${ocupadasTotais}</div><div class="dash-sub">OCUPADAS</div></div>
+      `;
+      dashContainer.appendChild(dashGeneral);
 
-      document.getElementById('stat-ext-tot').innerText = extTot;
-      document.getElementById('stat-ext-liv').innerText = extLiv;
-      document.getElementById('stat-ext-ocu').innerText = extOcu;
-
-      document.getElementById('stat-vip-tot').innerText = vipTot;
-      document.getElementById('stat-vip-liv').innerText = vipLiv;
-      document.getElementById('stat-vip-ocu').innerText = vipOcu;
-
-      const livTotais = regLiv + extLiv + vipLiv;
-
-      document.getElementById('stat-gen-tot').innerText = capacidadeRealTotal;
-      document.getElementById('stat-gen-liv').innerText = livTotais;
-      document.getElementById('stat-gen-ocu').innerText = ocupadasTotais;
-
+      // Atualiza a Barra de Progresso
       const percent = capacidadeRealTotal > 0 ? Math.round((ocupadasTotais / capacidadeRealTotal) * 100) : 0;
       const fillBar = document.getElementById('progress-bar-fill');
       document.getElementById('progress-percent-txt').innerText = `${percent}%`;
@@ -1681,13 +1786,14 @@
 
       document.getElementById('modal-troca-detalhes').innerHTML = `
         <div><strong>Veículo:</strong> ${vagaOrigem.placa} ${vagaOrigem.tag ? `[${vagaOrigem.tag}]` : ''} (${vagaOrigem.modelo || 'Sem modelo'})</div>
-        <div><strong>Vaga Atual:</strong> ${vagaOrigem.nomeVaga} [${vagaOrigem.categoria.toUpperCase()}]</div>
+        <div><strong>Vaga Atual:</strong> ${vagaOrigem.nomeVaga}</div>
       `;
 
       const select = document.getElementById('select-nova-vaga');
       select.innerHTML = '';
 
       outrasVagas.forEach(vo => {
+        const cat = categoriasVagas.find(c => c.id === vo.categoria);
         const option = document.createElement('option');
         option.value = vo.nomeVaga;
         const bloqueada = vo.statusEspecial && vo.statusEspecial !== 'livre';
@@ -1696,7 +1802,7 @@
         if (bloqueada) statusTexto = `⛔ ${vo.statusEspecial}`;
         else if (vo.ocupada) statusTexto = `🔴 Ocupada (${vo.placa || 'Sem placa'})`;
 
-        option.innerText = `Vaga ${vo.nomeVaga} [${vo.categoria.toUpperCase()}] - ${statusTexto}`;
+        option.innerText = `Vaga ${vo.nomeVaga} [${cat ? cat.nome.toUpperCase() : 'GERAL'}] - ${statusTexto}`;
         select.appendChild(option);
       });
 
@@ -1837,7 +1943,7 @@
 
     function exportarBackupJSON() {
       if (perfilUsuario !== "gestor") return;
-      const dadosBackup = { versao: "1.1.0", dataBackup: new Date().toISOString(), vagas, historico, veiculosPrecadastrados };
+      const dadosBackup = { versao: "1.2.0", dataBackup: new Date().toISOString(), vagas, categoriasVagas, historico, veiculosPrecadastrados };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosBackup, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
@@ -1856,6 +1962,7 @@
       reader.onload = function(e) {
         try {
           const conteudo = JSON.parse(e.target.result);
+          if (conteudo.categoriasVagas && Array.isArray(conteudo.categoriasVagas)) categoriasVagas = conteudo.categoriasVagas;
           if (conteudo.vagas && Array.isArray(conteudo.vagas)) vagas = conteudo.vagas;
           if (conteudo.historico && Array.isArray(conteudo.historico)) historico = conteudo.historico;
           if (conteudo.veiculosPrecadastrados && Array.isArray(conteudo.veiculosPrecadastrados)) veiculosPrecadastrados = conteudo.veiculosPrecadastrados;
@@ -1871,6 +1978,7 @@
       if (perfilUsuario !== "gestor") return;
       if (confirm('⚠️ ATENÇÃO (GESTOR): Deseja apagar TODOS os veículos e o histórico da nuvem?')) {
         if (confirm('Esta ação afetará TODOS os usuários. Deseja continuar?')) {
+          categoriasVagas = [...CATEGORIAS_PADRAO];
           vagas = criarEstruturaPadrao();
           historico = [];
           veiculosPrecadastrados = [];
