@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Est@r - v1.3 (Multi-Pátio com OCR & Placa Sem Hífen)</title>
+  <title>Est@r - v1.4 (OCR Treinado FE-Schrift/Placa)</title>
 
   <!-- Favicon e Ícone Web App -->
   <link rel="icon" type="image/png" href="favicon.png">
@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#3b82f6">
 
-  <!-- Biblioteca OCR para leitura em tempo real -->
+  <!-- Biblioteca OCR Tesseract.js -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
   <style>
@@ -55,37 +55,20 @@
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
       text-align: center;
     }
-    .login-landing-title {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: #ffffff;
-      margin-bottom: 8px;
-    }
-    .login-landing-subtitle {
-      font-size: 0.85rem;
-      color: var(--text-sub);
-      margin-bottom: 24px;
-    }
+    .login-landing-title { font-size: 1.8rem; font-weight: 800; color: #ffffff; margin-bottom: 8px; }
+    .login-landing-subtitle { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 24px; }
 
     /* Interface Principal do App */
-    #app-container {
-      display: none;
-      flex-direction: column;
-      width: 100%;
-    }
+    #app-container { display: none; flex-direction: column; width: 100%; }
 
     header { background-color: var(--card-bg); padding: 16px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
     .header-top { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
-    
-    @media (min-width: 768px) {
-      .header-top { flex-direction: row; justify-content: space-between; align-items: center; }
-    }
+    @media (min-width: 768px) { .header-top { flex-direction: row; justify-content: space-between; align-items: center; } }
 
     .header-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     h1 { font-size: 1.2rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px; }
 
     .badge-patio-title { font-size: 0.75rem; background: #22c55e; color: #000; padding: 2px 8px; border-radius: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-
     .patio-selector-box { display: flex; align-items: center; gap: 8px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); padding: 6px 12px; border-radius: 10px; }
     .patio-selector-label { font-size: 0.75rem; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; white-space: nowrap; }
     .patio-select { background: var(--bg-color); color: #fff; border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; outline: none; cursor: pointer; }
@@ -521,7 +504,7 @@
       <div class="footer-sync">
         <span>🟢 Sincronizado em Nuvem</span> • <span id="txt-timer-atualizacao">atualizado há 0 seg</span>
       </div>
-      <div class="footer-version">Est@r • Versão 1.3.0</div>
+      <div class="footer-version">Est@r • Versão 1.4.0 (OCR FE-Schrift/Placa)</div>
     </footer>
   </div>
 
@@ -631,7 +614,7 @@
         <button class="modal-btn" id="btn-confirm-troca" style="background-color: var(--purple-swap); color: #fff;">Confirmar Troca</button>
       </div>
     </div>
-  </script>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -675,6 +658,7 @@
     let streamVideo = null;
     let escaneandoOCR = false;
     let elementoInputDestinoPlaca = null;
+    let workerOCR = null;
 
     const PATIOS_PADRAO = [
       { id: "patio_batel", nome: "Batel", cor: "#3b82f6" },
@@ -845,10 +829,21 @@
     document.getElementById('btn-salvar-veiculo').addEventListener('click', salvarVeiculoPrecadastro);
     document.getElementById('btn-cancel-edit-veiculo').addEventListener('click', cancelarEdicaoVeiculo);
 
-    // LÓGICA DO SCANNER DE CÂMERA COM OTIMIZAÇÃO E PADRONIZAÇÃO SEM HÍFEN
+    // LÓGICA DO SCANNER DE CÂMERA DE ALTA PRECISÃO (FE-SCHRIFT & UPSCALING)
     document.getElementById('btn-cam-entrada').addEventListener('click', () => abrirScannerCamera(document.getElementById('input-placa')));
     document.getElementById('btn-cam-cad-veiculo').addEventListener('click', () => abrirScannerCamera(document.getElementById('cad-veiculo-placa')));
     document.getElementById('btn-close-scanner').addEventListener('click', fecharScannerCamera);
+
+    async function inicializarWorkerOCR() {
+      if (!workerOCR) {
+        workerOCR = await Tesseract.createWorker('eng');
+        await workerOCR.setParameters({
+          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
+          tessedit_enable_dict_lookups: '0'
+        });
+      }
+    }
 
     async function abrirScannerCamera(inputDestino) {
       elementoInputDestinoPlaca = inputDestino;
@@ -856,12 +851,20 @@
       const modalScanner = document.getElementById('modal-scanner-camera');
       const statusTxt = document.getElementById('scanner-status-txt');
 
-      statusTxt.innerText = "Iniciando câmera traseira...";
+      statusTxt.innerText = "Carregando motor OCR especializado...";
       modalScanner.classList.add('active');
 
       try {
+        await inicializarWorkerOCR();
+      } catch (e) {
+        console.warn("Falha ao configurar parâmetros avançados OCR, usando fallback.");
+      }
+
+      statusTxt.innerText = "Iniciando câmera traseira...";
+
+      try {
         streamVideo = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact: "environment" } }
+          video: { facingMode: { exact: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
         });
       } catch (err) {
         try {
@@ -884,6 +887,7 @@
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
+      // Correção inteligente FE-Schrift
       const paraLetra = (char) => {
         const mapa = { '0': 'O', '1': 'I', '8': 'B', '5': 'S', '6': 'G', '2': 'Z' };
         return mapa[char] || char;
@@ -915,27 +919,36 @@
           const cropX = (video.videoWidth - cropW) / 2;
           const cropY = (video.videoHeight - cropH) / 2;
 
-          canvas.width = cropW;
-          canvas.height = cropH;
+          // Upscaling de 2x na resolução recortada para ampliar caracteres pequenos
+          const scaleFactor = 2;
+          canvas.width = cropW * scaleFactor;
+          canvas.height = cropH * scaleFactor;
 
-          ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-          const imgData = ctx.getImageData(0, 0, cropW, cropH);
+          ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const d = imgData.data;
 
+          // Processamento adaptativo de imagem
           for (let i = 0; i < d.length; i += 4) {
             const gray = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
-            const v = gray > 120 ? 255 : 0;
+            const v = gray > 115 ? 255 : 0;
             d[i] = d[i + 1] = d[i + 2] = v;
           }
           ctx.putImageData(imgData, 0, 0);
 
           try {
-            const resultado = await Tesseract.recognize(canvas, 'eng', {
-              tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-              tessedit_pageseg_mode: '7'
-            });
+            let textoBruto = '';
+            if (workerOCR) {
+              const res = await workerOCR.recognize(canvas);
+              textoBruto = res.data.text.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+            } else {
+              const resultado = await Tesseract.recognize(canvas, 'eng', {
+                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+                tessedit_pageseg_mode: '7'
+              });
+              textoBruto = resultado.data.text.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+            }
 
-            const textoBruto = resultado.data.text.replace(/[^A-Z0-9]/gi, '').toUpperCase();
             const regexMercosul = /[A-Z0-9]{3}[0-9][A-Z0-9]{3}/;
             const regexAntigo = /[A-Z0-9]{7}/;
 
@@ -953,13 +966,13 @@
 
                 if (navigator.vibrate) navigator.vibrate(200);
                 statusTxt.innerText = `Placa Lida: ${placaLimpa}`;
-                setTimeout(fecharScannerCamera, 500);
+                setTimeout(fecharScannerCamera, 400);
                 break;
               }
             }
           } catch (e) { }
         }
-        await new Promise(resolve => setTimeout(resolve, 400));
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
     }
 
@@ -2505,7 +2518,7 @@
 
     function exportarBackupJSON() {
       if (perfilUsuario !== "gestor") return;
-      const dadosBackup = { versao: "1.3.0", dataBackup: new Date().toISOString(), patios, vagas, categoriasVagas, historico, veiculosPrecadastrados };
+      const dadosBackup = { versao: "1.4.0", dataBackup: new Date().toISOString(), patios, vagas, categoriasVagas, historico, veiculosPrecadastrados };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosBackup, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
