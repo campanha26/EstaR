@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Est@r - v1.3 (Multi-Pátio com OCR Otimizado)</title>
+  <title>Est@r - v1.3 (Multi-Pátio com OCR & Placa Sem Hífen)</title>
 
   <!-- Favicon e Ícone Web App -->
   <link rel="icon" type="image/png" href="favicon.png">
@@ -354,7 +354,7 @@
         <div class="form-group">
           <label class="form-label">PLACA DO VEÍCULO *</label>
           <div class="input-placa-wrapper">
-            <input type="text" id="cad-veiculo-placa" class="modal-input placa" placeholder="ABC-1234" maxlength="10" autocomplete="off">
+            <input type="text" id="cad-veiculo-placa" class="modal-input placa" placeholder="ABC1234" maxlength="7" autocomplete="off">
             <button type="button" class="btn-cam-scan" id="btn-cam-cad-veiculo">📷 Scanner</button>
           </div>
           <div id="autocomplete-veiculo-box" class="autocomplete-list"></div>
@@ -550,7 +550,7 @@
       <div class="form-group">
         <label class="form-label">PLACA DO VEÍCULO *</label>
         <div class="input-placa-wrapper">
-          <input type="text" id="input-placa" class="modal-input placa" placeholder="ABC-1234" maxlength="10" autocomplete="off">
+          <input type="text" id="input-placa" class="modal-input placa" placeholder="ABC1234" maxlength="7" autocomplete="off">
           <button type="button" class="btn-cam-scan" id="btn-cam-entrada">📷 Scanner</button>
         </div>
         <div id="autocomplete-box" class="autocomplete-list"></div>
@@ -631,7 +631,7 @@
         <button class="modal-btn" id="btn-confirm-troca" style="background-color: var(--purple-swap); color: #fff;">Confirmar Troca</button>
       </div>
     </div>
-  </div>
+  </script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -703,6 +703,23 @@
       if (elTimer) elTimer.innerText = `atualizado há 0 seg`;
     }
 
+    // SANITIZAÇÃO E PADRONIZAÇÃO RIGOROSA DE PLACAS (100% SEM HÍFEN)
+    function formatarPlacaPadrao(valor) {
+      if (!valor) return '';
+      return valor.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 7);
+    }
+
+    function aplicarMascaraInputsPlaca() {
+      ['input-placa', 'cad-veiculo-placa'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', (e) => {
+            e.target.value = formatarPlacaPadrao(e.target.value);
+          });
+        }
+      });
+    }
+
     function aplicarMascaraTelefone(value) {
       const nums = value.replace(/\D/g, '').slice(0, 11);
       if (nums.length === 0) return '';
@@ -765,6 +782,8 @@
     categoriasVagas = [...CATEGORIAS_PADRAO];
     vagas = criarEstruturaPadrao();
 
+    aplicarMascaraInputsPlaca();
+
     const inputTelefone = document.getElementById('input-telefone');
     inputTelefone.addEventListener('input', (e) => { e.target.value = aplicarMascaraTelefone(e.target.value); });
 
@@ -826,7 +845,7 @@
     document.getElementById('btn-salvar-veiculo').addEventListener('click', salvarVeiculoPrecadastro);
     document.getElementById('btn-cancel-edit-veiculo').addEventListener('click', cancelarEdicaoVeiculo);
 
-    // LÓGICA DO SCANNER DE PLACA POR CÂMERA OTIMIZADO
+    // LÓGICA DO SCANNER DE CÂMERA COM OTIMIZAÇÃO E PADRONIZAÇÃO SEM HÍFEN
     document.getElementById('btn-cam-entrada').addEventListener('click', () => abrirScannerCamera(document.getElementById('input-placa')));
     document.getElementById('btn-cam-cad-veiculo').addEventListener('click', () => abrirScannerCamera(document.getElementById('cad-veiculo-placa')));
     document.getElementById('btn-close-scanner').addEventListener('click', fecharScannerCamera);
@@ -862,7 +881,6 @@
 
     async function processarLoopOCR(video) {
       const statusTxt = document.getElementById('scanner-status-txt');
-      
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
@@ -913,7 +931,7 @@
 
           try {
             const resultado = await Tesseract.recognize(canvas, 'eng', {
-              tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',
+              tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
               tessedit_pageseg_mode: '7'
             });
 
@@ -924,22 +942,17 @@
             let match = textoBruto.match(regexMercosul) || textoBruto.match(regexAntigo);
 
             if (match) {
-              let placaTratada = autocorrigirPlaca(match[0]);
+              const placaLimpa = autocorrigirPlaca(match[0]);
+              const validaPlaca = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(placaLimpa) || /^[A-Z]{3}[0-9]{4}$/.test(placaLimpa);
 
-              if (/^[A-Z]{3}[0-9]{4}$/.test(placaTratada)) {
-                placaTratada = `${placaTratada.slice(0, 3)}-${placaTratada.slice(3)}`;
-              }
-
-              const validaFinais = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(placaTratada.replace('-', ''));
-
-              if (validaFinais) {
+              if (validaPlaca) {
                 if (elementoInputDestinoPlaca) {
-                  elementoInputDestinoPlaca.value = placaTratada;
+                  elementoInputDestinoPlaca.value = placaLimpa;
                   elementoInputDestinoPlaca.dispatchEvent(new Event('input'));
                 }
 
                 if (navigator.vibrate) navigator.vibrate(200);
-                statusTxt.innerText = `Placa Lida: ${placaTratada}`;
+                statusTxt.innerText = `Placa Lida: ${placaLimpa}`;
                 setTimeout(fecharScannerCamera, 500);
                 break;
               }
@@ -985,11 +998,15 @@
 
     function obterBaseCompletaVeiculos() {
       const mapa = new Map();
-      veiculosPrecadastrados.forEach(v => mapa.set(v.placa, { ...v, tipo: 'precadastro' }));
+      veiculosPrecadastrados.forEach(v => {
+        const placaSemHifen = formatarPlacaPadrao(v.placa);
+        mapa.set(placaSemHifen, { ...v, placa: placaSemHifen, tipo: 'precadastro' });
+      });
 
       historico.forEach(h => {
-        if (h.placa && !mapa.has(h.placa)) {
-          mapa.set(h.placa, { ...h, tipo: 'historico' });
+        const placaSemHifen = formatarPlacaPadrao(h.placa);
+        if (placaSemHifen && !mapa.has(placaSemHifen)) {
+          mapa.set(placaSemHifen, { ...h, placa: placaSemHifen, tipo: 'historico' });
         }
       });
       return Array.from(mapa.values());
@@ -1000,7 +1017,7 @@
       const elBox = document.getElementById(boxId);
 
       elInput.addEventListener('input', () => {
-        const termo = elInput.value.trim().toUpperCase();
+        const termo = formatarPlacaPadrao(elInput.value);
         elBox.innerHTML = '';
 
         if (termo.length < 2) {
@@ -1031,7 +1048,7 @@
           `;
 
           div.addEventListener('click', () => {
-            elInput.value = item.placa.toUpperCase();
+            elInput.value = item.placa;
             if (selectTagId) document.getElementById(selectTagId).value = normalizarValorSelectTag(item.tag || '');
             if (telId) document.getElementById(telId).value = formatarTelefoneExibicao(item.telefone || '');
             if (modId) document.getElementById(modId).value = (item.modelo || '').toUpperCase();
@@ -1173,11 +1190,22 @@
             if (v.categoria === 'regular') v.categoria = 'cat_regular';
             if (v.categoria === 'extra') v.categoria = 'cat_extra';
             if (v.categoria === 'vip') v.categoria = 'cat_vip';
+            if (v.placa) v.placa = formatarPlacaPadrao(v.placa);
             return v;
           });
         }
-        if (data.historico) historico = data.historico;
-        if (data.veiculosPrecadastrados) veiculosPrecadastrados = data.veiculosPrecadastrados;
+        if (data.historico) {
+          historico = data.historico.map(h => {
+            if (h.placa) h.placa = formatarPlacaPadrao(h.placa);
+            return h;
+          });
+        }
+        if (data.veiculosPrecadastrados) {
+          veiculosPrecadastrados = data.veiculosPrecadastrados.map(v => {
+            if (v.placa) v.placa = formatarPlacaPadrao(v.placa);
+            return v;
+          });
+        }
       } else {
         salvar();
       }
@@ -1462,7 +1490,7 @@
     function salvarVeiculoPrecadastro() {
       if (perfilUsuario !== "gestor") return;
 
-      const placa = document.getElementById('cad-veiculo-placa').value.trim().toUpperCase();
+      const placa = formatarPlacaPadrao(document.getElementById('cad-veiculo-placa').value);
       if (!placa) return alert('Por favor, informe a placa do veículo.');
 
       const patioId = document.getElementById('cad-veiculo-patio').value;
@@ -1475,7 +1503,8 @@
       if (eEdicaoHistoricoPassagem) {
         let alterados = 0;
         historico.forEach(h => {
-          if (h.placa === placa) {
+          if (formatarPlacaPadrao(h.placa) === placa) {
+            h.placa = placa;
             h.tag = tag;
             h.telefone = telefone;
             h.modelo = modelo;
@@ -1486,7 +1515,8 @@
         });
 
         vagas.forEach(v => {
-          if (v.ocupada && v.placa === placa) {
+          if (v.ocupada && formatarPlacaPadrao(v.placa) === placa) {
+            v.placa = placa;
             v.tag = tag;
             v.telefone = telefone;
             v.modelo = modelo;
@@ -1502,7 +1532,7 @@
       }
 
       const novoObjeto = { placa, patioId, tag, telefone, modelo, nome, setor, cadastradoEm: new Date().toISOString() };
-      const index = veiculosPrecadastrados.findIndex(v => v.placa === placa);
+      const index = veiculosPrecadastrados.findIndex(v => formatarPlacaPadrao(v.placa) === placa);
 
       if (index !== -1) {
         veiculosPrecadastrados[index] = novoObjeto;
@@ -1517,14 +1547,15 @@
     }
 
     function carregarVeiculoParaEdicao(placa, eHistoricoPassagem = false) {
-      const v = veiculosPrecadastrados.find(item => item.placa === placa) || historico.find(item => item.placa === placa);
+      const placaLimpa = formatarPlacaPadrao(placa);
+      const v = veiculosPrecadastrados.find(item => formatarPlacaPadrao(item.placa) === placaLimpa) || historico.find(item => formatarPlacaPadrao(item.placa) === placaLimpa);
       if (!v) return;
 
-      veiculoEmEdicaoPlaca = v.placa;
+      veiculoEmEdicaoPlaca = placaLimpa;
       eEdicaoHistoricoPassagem = eHistoricoPassagem;
 
-      document.getElementById('form-veiculo-titulo').innerText = eHistoricoPassagem ? `✏️ Corrigir Dados - Veículo ${v.placa}` : `✏️ Editar Pré-Cadastro - ${v.placa}`;
-      document.getElementById('cad-veiculo-placa').value = v.placa;
+      document.getElementById('form-veiculo-titulo').innerText = eHistoricoPassagem ? `✏️ Corrigir Dados - Veículo ${placaLimpa}` : `✏️ Editar Pré-Cadastro - ${placaLimpa}`;
+      document.getElementById('cad-veiculo-placa').value = placaLimpa;
       if (v.patioId) document.getElementById('cad-veiculo-patio').value = v.patioId;
       document.getElementById('cad-veiculo-tag').value = normalizarValorSelectTag(v.tag || '');
       document.getElementById('cad-veiculo-telefone').value = formatarTelefoneExibicao(v.telefone || '');
@@ -1556,8 +1587,9 @@
 
     function excluirVeiculoPrecadastro(placa) {
       if (perfilUsuario !== "gestor") return;
-      if (confirm(`Deseja remover o pré-cadastro do veículo ${placa}?`)) {
-        veiculosPrecadastrados = veiculosPrecadastrados.filter(v => v.placa !== placa);
+      const placaLimpa = formatarPlacaPadrao(placa);
+      if (confirm(`Deseja remover o pré-cadastro do veículo ${placaLimpa}?`)) {
+        veiculosPrecadastrados = veiculosPrecadastrados.filter(v => formatarPlacaPadrao(v.placa) !== placaLimpa);
         salvar();
         alert('Pré-cadastro removido com sucesso!');
       }
@@ -1568,14 +1600,15 @@
 
       const containerPre = document.getElementById('lista-veiculos-precadastro');
       const containerHist = document.getElementById('lista-veiculos-historico');
-      const termo = document.getElementById('search-veiculos').value.toUpperCase().trim();
+      const termo = formatarPlacaPadrao(document.getElementById('search-veiculos').value.trim());
 
       containerPre.innerHTML = '';
       containerHist.innerHTML = '';
 
       const matchFiltro = (v) => {
         if (!termo) return true;
-        return (v.placa && v.placa.includes(termo)) ||
+        const pLimpa = formatarPlacaPadrao(v.placa);
+        return (pLimpa && pLimpa.includes(termo)) ||
                (v.tag && v.tag.toUpperCase().includes(termo)) ||
                (v.modelo && v.modelo.toUpperCase().includes(termo)) ||
                (v.nome && v.nome.toUpperCase().includes(termo)) ||
@@ -1589,13 +1622,14 @@
         containerPre.innerHTML = '<div class="empty-msg">Nenhum veículo no Pré-Cadastro.</div>';
       } else {
         precadastradosFiltrados.forEach(v => {
+          const placaExibicao = formatarPlacaPadrao(v.placa);
           const telFormatado = formatarTelefoneExibicao(v.telefone || '');
           const nomePatio = obterNomePatio(v.patioId);
           const card = document.createElement('div');
           card.className = 'std-card precadastro';
           card.innerHTML = `
             <div class="std-top">
-              <span class="std-title">🚘 ${v.placa} ${v.tag ? `<small style="font-size:0.75rem; color:var(--vip-gold);">[${v.tag}]</small>` : ''}</span>
+              <span class="std-title">🚘 ${placaExibicao} ${v.tag ? `<small style="font-size:0.75rem; color:var(--vip-gold);">[${v.tag}]</small>` : ''}</span>
               <span class="std-badge gold">${nomePatio}</span>
             </div>
             <div class="std-details">
@@ -1604,22 +1638,23 @@
               <div><strong>Setor:</strong> ${v.setor || 'Não informado'}</div>
             </div>
             <div class="std-actions">
-              <button class="btn-sm-edit" data-placa="${v.placa}">Editar</button>
-              <button class="btn-sm-del" data-placa="${v.placa}">Excluir</button>
+              <button class="btn-sm-edit" data-placa="${placaExibicao}">Editar</button>
+              <button class="btn-sm-del" data-placa="${placaExibicao}">Excluir</button>
             </div>
           `;
-          card.querySelector('.btn-sm-edit').addEventListener('click', () => carregarVeiculoParaEdicao(v.placa, false));
-          card.querySelector('.btn-sm-del').addEventListener('click', () => excluirVeiculoPrecadastro(v.placa));
+          card.querySelector('.btn-sm-edit').addEventListener('click', () => carregarVeiculoParaEdicao(placaExibicao, false));
+          card.querySelector('.btn-sm-del').addEventListener('click', () => excluirVeiculoPrecadastro(placaExibicao));
           containerPre.appendChild(card);
         });
       }
 
-      const placasJaPre = new Set(veiculosPrecadastrados.map(v => v.placa));
+      const placasJaPre = new Set(veiculosPrecadastrados.map(v => formatarPlacaPadrao(v.placa)));
       const mapaHist = new Map();
 
       historico.forEach(h => {
-        if (h.placa && !placasJaPre.has(h.placa) && !mapaHist.has(h.placa)) {
-          mapaHist.set(h.placa, h);
+        const pLimpa = formatarPlacaPadrao(h.placa);
+        if (pLimpa && !placasJaPre.has(pLimpa) && !mapaHist.has(pLimpa)) {
+          mapaHist.set(pLimpa, { ...h, placa: pLimpa });
         }
       });
 
@@ -1629,12 +1664,13 @@
         containerHist.innerHTML = '<div class="empty-msg">Nenhum registro extra encontrado.</div>';
       } else {
         historicoUnicoFiltrado.forEach(v => {
+          const placaExibicao = formatarPlacaPadrao(v.placa);
           const telFormatado = formatarTelefoneExibicao(v.telefone || '');
           const card = document.createElement('div');
           card.className = 'std-card';
           card.innerHTML = `
             <div class="std-top">
-              <span class="std-title">🚘 ${v.placa} ${v.tag ? `<small style="font-size:0.75rem; color:var(--vip-gold);">[${v.tag}]</small>` : ''}</span>
+              <span class="std-title">🚘 ${placaExibicao} ${v.tag ? `<small style="font-size:0.75rem; color:var(--vip-gold);">[${v.tag}]</small>` : ''}</span>
               <span class="std-badge">📋 Passagem Pátio</span>
             </div>
             <div class="std-details">
@@ -1643,14 +1679,14 @@
               <div><strong>Setor:</strong> ${v.setor || 'Não informado'}</div>
             </div>
             <div class="std-actions">
-              <button class="btn-sm-edit" data-placa="${v.placa}">Editar</button>
-              <button class="btn-sm-edit" style="background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.4);" data-placa="${v.placa}">Promover p/ Pré-Cadastro</button>
+              <button class="btn-sm-edit" data-placa="${placaExibicao}">Editar</button>
+              <button class="btn-sm-edit" style="background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.4);" data-placa="${placaExibicao}">Promover p/ Pré-Cadastro</button>
             </div>
           `;
 
           const btns = card.querySelectorAll('.btn-sm-edit');
-          btns[0].addEventListener('click', () => carregarVeiculoParaEdicao(v.placa, true));
-          btns[1].addEventListener('click', () => carregarVeiculoParaEdicao(v.placa, false));
+          btns[0].addEventListener('click', () => carregarVeiculoParaEdicao(placaExibicao, true));
+          btns[1].addEventListener('click', () => carregarVeiculoParaEdicao(placaExibicao, false));
           containerHist.appendChild(card);
         });
       }
@@ -1932,9 +1968,10 @@
     function renderizarCardVaga(v, termoBusca, cat) {
       const telFormatado = formatarTelefoneExibicao(v.telefone || '');
       const numWa = v.telefone ? v.telefone.replace(/\D/g, '') : '';
+      const placaExibicao = formatarPlacaPadrao(v.placa || '');
 
       const matchBusca = 
-        (v.placa && v.placa.includes(termoBusca)) ||
+        (placaExibicao && placaExibicao.includes(termoBusca)) ||
         (v.tag && v.tag.toUpperCase().includes(termoBusca)) ||
         v.nomeVaga.includes(termoBusca) ||
         (v.modelo && v.modelo.toUpperCase().includes(termoBusca)) ||
@@ -1973,7 +2010,7 @@
         <div class="vaga-body">
           ${v.ocupada ? `
             <div class="placa-txt">
-              <span>${v.placa}</span>
+              <span>${placaExibicao}</span>
               ${v.tag ? `<span class="tag-badge">${v.tag}</span>` : ''}
             </div>
             ${v.telefone ? `
@@ -2034,7 +2071,7 @@
 
       const containerCategorias = document.getElementById('container-categorias-vagas');
       const dashContainer = document.getElementById('dashboard-dinamico');
-      const termoBusca = document.getElementById('search-input').value.toUpperCase().trim();
+      const termoBusca = formatarPlacaPadrao(document.getElementById('search-input').value.trim());
       const nomePatioAtivo = obterNomePatio(patioAtivoId);
 
       document.getElementById('badge-header-patio').innerText = nomePatioAtivo.toUpperCase();
@@ -2133,7 +2170,7 @@
     }
 
     function obterHistoricoFiltradoGeral() {
-      const busca = document.getElementById('search-hist').value.toUpperCase().trim();
+      const busca = formatarPlacaPadrao(document.getElementById('search-hist').value.trim());
       const filtroPatio = document.getElementById('hist-filtro-patio').value;
       const filtroPeriodo = document.getElementById('hist-filtro-periodo').value;
       const agora = new Date();
@@ -2141,7 +2178,8 @@
       return historico.filter(h => {
         if (filtroPatio !== 'todos' && h.patioId !== filtroPatio) return false;
 
-        const matchText = (h.placa && h.placa.includes(busca)) ||
+        const pLimpa = formatarPlacaPadrao(h.placa);
+        const matchText = (pLimpa && pLimpa.includes(busca)) ||
           (h.tag && h.tag.toUpperCase().includes(busca)) ||
           (h.nomeVaga && h.nomeVaga.includes(busca)) ||
           (h.modelo && h.modelo.toUpperCase().includes(busca)) ||
@@ -2182,6 +2220,7 @@
       }
 
       filtrados.forEach(h => {
+        const placaExibicao = formatarPlacaPadrao(h.placa);
         const telFormatado = formatarTelefoneExibicao(h.telefone || '');
         const nomePatio = h.patioNome || obterNomePatio(h.patioId);
 
@@ -2189,7 +2228,7 @@
         card.className = 'std-card';
         card.innerHTML = `
           <div class="std-top">
-            <span class="std-title">${h.placa} ${h.tag ? `<small style="font-size:0.75rem; color:var(--vip-gold);">[${h.tag}]</small>` : ''}</span>
+            <span class="std-title">${placaExibicao} ${h.tag ? `<small style="font-size:0.75rem; color:var(--vip-gold);">[${h.tag}]</small>` : ''}</span>
             <span class="std-badge">📍 ${nomePatio} - Vaga ${h.nomeVaga}</span>
           </div>
           <div class="std-details">
@@ -2256,7 +2295,7 @@
         const numWa = vaga.telefone ? vaga.telefone.replace(/\D/g, '') : '';
 
         document.getElementById('modal-saida-detalhes').innerHTML = `
-          <div><strong>Placa:</strong> ${vaga.placa} ${vaga.tag ? `<span class="tag-badge">${vaga.tag}</span>` : ''}</div>
+          <div><strong>Placa:</strong> ${formatarPlacaPadrao(vaga.placa)} ${vaga.tag ? `<span class="tag-badge">${vaga.tag}</span>` : ''}</div>
           <div>
             <strong>Telefone:</strong> ${telFormatado ? `
               <div class="contact-row" style="margin-top:4px;">
@@ -2283,7 +2322,7 @@
 
       document.getElementById('modal-entrada-titulo').innerText = `Editar Dados - Vaga ${nomeVaga}`;
       document.getElementById('btn-confirm-entrada').innerText = 'Salvar Alterações';
-      document.getElementById('input-placa').value = vaga.placa || '';
+      document.getElementById('input-placa').value = formatarPlacaPadrao(vaga.placa || '');
       document.getElementById('input-tag').value = normalizarValorSelectTag(vaga.tag || '');
       document.getElementById('input-telefone').value = formatarTelefoneExibicao(vaga.telefone || '');
       document.getElementById('input-modelo').value = vaga.modelo || '';
@@ -2306,7 +2345,7 @@
       const outrasVagas = vagas.filter(v => (v.patioId || 'patio_batel') === patioAtivoId && v.nomeVaga !== nomeVaga);
 
       document.getElementById('modal-troca-detalhes').innerHTML = `
-        <div><strong>Veículo:</strong> ${vagaOrigem.placa} ${vagaOrigem.tag ? `[${vagaOrigem.tag}]` : ''} (${vagaOrigem.modelo || 'Sem modelo'})</div>
+        <div><strong>Veículo:</strong> ${formatarPlacaPadrao(vagaOrigem.placa)} ${vagaOrigem.tag ? `[${vagaOrigem.tag}]` : ''} (${vagaOrigem.modelo || 'Sem modelo'})</div>
         <div><strong>Pátio:</strong> ${obterNomePatio(patioAtivoId)} | <strong>Vaga Atual:</strong> ${vagaOrigem.nomeVaga}</div>
       `;
 
@@ -2321,7 +2360,7 @@
 
         let statusTexto = '🟢 Livre';
         if (bloqueada) statusTexto = `⛔ ${vo.statusEspecial}`;
-        else if (vo.ocupada) statusTexto = `🔴 Ocupada (${vo.placa || 'Sem placa'})`;
+        else if (vo.ocupada) statusTexto = `🔴 Ocupada (${formatarPlacaPadrao(vo.placa) || 'Sem placa'})`;
 
         option.innerText = `Vaga ${vo.nomeVaga} [${cat ? cat.nome.toUpperCase() : 'GERAL'}] - ${statusTexto}`;
         select.appendChild(option);
@@ -2359,7 +2398,7 @@
 
         const veiculoOrigem = {
           ocupada: Boolean(vagas[indexOrigem].ocupada),
-          placa: (vagas[indexOrigem].placa || '').toUpperCase(),
+          placa: formatarPlacaPadrao(vagas[indexOrigem].placa),
           tag: vagas[indexOrigem].tag || '',
           modelo: (vagas[indexOrigem].modelo || '').toUpperCase(),
           nome: (vagas[indexOrigem].nome || '').toUpperCase(),
@@ -2371,7 +2410,7 @@
 
         const veiculoDestino = {
           ocupada: Boolean(vagas[indexDestino].ocupada),
-          placa: (vagas[indexDestino].placa || '').toUpperCase(),
+          placa: formatarPlacaPadrao(vagas[indexDestino].placa),
           tag: vagas[indexDestino].tag || '',
           modelo: (vagas[indexDestino].modelo || '').toUpperCase(),
           nome: (vagas[indexDestino].nome || '').toUpperCase(),
@@ -2390,7 +2429,7 @@
     }
 
     function confirmarEntrada() {
-      const placa = document.getElementById('input-placa').value.trim().toUpperCase();
+      const placa = formatarPlacaPadrao(document.getElementById('input-placa').value);
       if (!placa) return alert('Por favor, informe a placa.');
 
       const emailAtual = obterEmailUsuarioAtual();
@@ -2436,7 +2475,7 @@
           patioNome: obterNomePatio(patioAtivoId),
           vagaId: v.id,
           nomeVaga: v.nomeVaga,
-          placa: (v.placa || '').toUpperCase(),
+          placa: formatarPlacaPadrao(v.placa),
           tag: v.tag || '',
           modelo: (v.modelo || '').toUpperCase(),
           nome: (v.nome || '').toUpperCase(),
@@ -2487,9 +2526,24 @@
           const conteudo = JSON.parse(e.target.result);
           if (conteudo.patios && Array.isArray(conteudo.patios)) patios = conteudo.patios;
           if (conteudo.categoriasVagas && Array.isArray(conteudo.categoriasVagas)) categoriasVagas = conteudo.categoriasVagas;
-          if (conteudo.vagas && Array.isArray(conteudo.vagas)) vagas = conteudo.vagas;
-          if (conteudo.historico && Array.isArray(conteudo.historico)) historico = conteudo.historico;
-          if (conteudo.veiculosPrecadastrados && Array.isArray(conteudo.veiculosPrecadastrados)) veiculosPrecadastrados = conteudo.veiculosPrecadastrados;
+          if (conteudo.vagas) {
+            vagas = conteudo.vagas.map(v => {
+              if (v.placa) v.placa = formatarPlacaPadrao(v.placa);
+              return v;
+            });
+          }
+          if (conteudo.historico) {
+            historico = conteudo.historico.map(h => {
+              if (h.placa) h.placa = formatarPlacaPadrao(h.placa);
+              return h;
+            });
+          }
+          if (conteudo.veiculosPrecadastrados) {
+            veiculosPrecadastrados = conteudo.veiculosPrecadastrados.map(v => {
+              if (v.placa) v.placa = formatarPlacaPadrao(v.placa);
+              return v;
+            });
+          }
           salvar();
           alert('Backup importado com sucesso!');
         } catch (err) { alert('Erro ao ler o arquivo de backup.'); }
@@ -2539,7 +2593,8 @@
       let csv = 'Patio,Vaga,Placa,TAG,Modelo,Condutor,Telefone,Setor,Data/Hora Entrada,Data/Hora Saida,Tempo Permanencia,Operador Entrada,Operador Saida\n';
       dados.forEach(h => {
         const nomePatio = h.patioNome || obterNomePatio(h.patioId);
-        csv += `"${nomePatio}","${h.nomeVaga}","${h.placa}","${h.tag || ''}","${h.modelo || ''}","${h.nome || ''}","${h.telefone || ''}","${h.setor || ''}","${formatarDataHora(h.horaEntrada)}","${formatarDataHora(h.horaSaida)}","${h.permanencia}","${h.operadorEntrada || 'Desconhecido'}","${h.operadorSaida || 'Desconhecido'}"\n`;
+        const placaExibicao = formatarPlacaPadrao(h.placa);
+        csv += `"${nomePatio}","${h.nomeVaga}","${placaExibicao}","${h.tag || ''}","${h.modelo || ''}","${h.nome || ''}","${h.telefone || ''}","${h.setor || ''}","${formatarDataHora(h.horaEntrada)}","${formatarDataHora(h.horaSaida)}","${h.permanencia}","${h.operadorEntrada || 'Desconhecido'}","${h.operadorSaida || 'Desconhecido'}"\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
