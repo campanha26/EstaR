@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Est@r - v1.3 (Multi-Pátio com OCR em Tempo Real)</title>
+  <title>Est@r - v1.3 (Multi-Pátio com OCR Otimizado)</title>
 
   <!-- Favicon e Ícone Web App -->
   <link rel="icon" type="image/png" href="favicon.png">
@@ -826,7 +826,7 @@
     document.getElementById('btn-salvar-veiculo').addEventListener('click', salvarVeiculoPrecadastro);
     document.getElementById('btn-cancel-edit-veiculo').addEventListener('click', cancelarEdicaoVeiculo);
 
-    // LÓGICA DO SCANNER DE PLACA POR CÂMERA
+    // LÓGICA DO SCANNER DE PLACA POR CÂMERA OTIMIZADO
     document.getElementById('btn-cam-entrada').addEventListener('click', () => abrirScannerCamera(document.getElementById('input-placa')));
     document.getElementById('btn-cam-cad-veiculo').addEventListener('click', () => abrirScannerCamera(document.getElementById('cad-veiculo-placa')));
     document.getElementById('btn-close-scanner').addEventListener('click', fecharScannerCamera);
@@ -862,47 +862,91 @@
 
     async function processarLoopOCR(video) {
       const statusTxt = document.getElementById('scanner-status-txt');
+      
       const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+      const paraLetra = (char) => {
+        const mapa = { '0': 'O', '1': 'I', '8': 'B', '5': 'S', '6': 'G', '2': 'Z' };
+        return mapa[char] || char;
+      };
+
+      const paraNumero = (char) => {
+        const mapa = { 'O': '0', 'Q': '0', 'I': '1', 'B': '8', 'S': '5', 'G': '6', 'Z': '2' };
+        return mapa[char] || char;
+      };
+
+      const autocorrigirPlaca = (str) => {
+        let arr = str.split('');
+        if (arr.length !== 7) return str;
+
+        arr[0] = paraLetra(arr[0]);
+        arr[1] = paraLetra(arr[1]);
+        arr[2] = paraLetra(arr[2]);
+        arr[3] = paraNumero(arr[3]);
+        arr[5] = paraNumero(arr[5]);
+        arr[6] = paraNumero(arr[6]);
+
+        return arr.join('');
+      };
 
       while (escaneandoOCR) {
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const cropW = video.videoWidth * 0.8;
+          const cropH = 80 * (video.videoHeight / 250);
+          const cropX = (video.videoWidth - cropW) / 2;
+          const cropY = (video.videoHeight - cropH) / 2;
+
+          canvas.width = cropW;
+          canvas.height = cropH;
+
+          ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+          const imgData = ctx.getImageData(0, 0, cropW, cropH);
+          const d = imgData.data;
+
+          for (let i = 0; i < d.length; i += 4) {
+            const gray = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+            const v = gray > 120 ? 255 : 0;
+            d[i] = d[i + 1] = d[i + 2] = v;
+          }
+          ctx.putImageData(imgData, 0, 0);
 
           try {
             const resultado = await Tesseract.recognize(canvas, 'eng', {
-              tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'
+              tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-',
+              tessedit_pageseg_mode: '7'
             });
 
-            const textoLimpo = resultado.data.text.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
-            
-            // Regex para Mercosul (ABC1D23) ou Padrão Antigo (ABC1234 / ABC-1234)
-            const regexMercosul = /[A-Z]{3}[0-9][A-Z0-9][0-9]{2}/;
-            const regexAntigo = /[A-Z]{3}-?[0-9]{4}/;
+            const textoBruto = resultado.data.text.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+            const regexMercosul = /[A-Z0-9]{3}[0-9][A-Z0-9]{3}/;
+            const regexAntigo = /[A-Z0-9]{7}/;
 
-            let match = textoLimpo.match(regexMercosul) || textoLimpo.match(regexAntigo);
+            let match = textoBruto.match(regexMercosul) || textoBruto.match(regexAntigo);
 
             if (match) {
-              let placaEncontrada = match[0];
-              if (!placaEncontrada.includes('-') && placaEncontrada.length === 7 && /^[A-Z]{3}[0-9]{4}$/.test(placaEncontrada)) {
-                placaEncontrada = `${placaEncontrada.slice(0,3)}-${placaEncontrada.slice(3)}`;
+              let placaTratada = autocorrigirPlaca(match[0]);
+
+              if (/^[A-Z]{3}[0-9]{4}$/.test(placaTratada)) {
+                placaTratada = `${placaTratada.slice(0, 3)}-${placaTratada.slice(3)}`;
               }
 
-              if (elementoInputDestinoPlaca) {
-                elementoInputDestinoPlaca.value = placaEncontrada;
-                elementoInputDestinoPlaca.dispatchEvent(new Event('input'));
-              }
+              const validaFinais = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(placaTratada.replace('-', ''));
 
-              if (navigator.vibrate) navigator.vibrate(200);
-              statusTxt.innerText = `Placa detectada: ${placaEncontrada}`;
-              setTimeout(fecharScannerCamera, 600);
-              break;
+              if (validaFinais) {
+                if (elementoInputDestinoPlaca) {
+                  elementoInputDestinoPlaca.value = placaTratada;
+                  elementoInputDestinoPlaca.dispatchEvent(new Event('input'));
+                }
+
+                if (navigator.vibrate) navigator.vibrate(200);
+                statusTxt.innerText = `Placa Lida: ${placaTratada}`;
+                setTimeout(fecharScannerCamera, 500);
+                break;
+              }
             }
           } catch (e) { }
         }
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => setTimeout(resolve, 400));
       }
     }
 
