@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Est@r - v1.4 (OCR Treinado FE-Schrift/Placa)</title>
+  <title>Est@r - v1.4.1 (OCR Corrigido & Placa Sem Hífen)</title>
 
   <!-- Favicon e Ícone Web App -->
   <link rel="icon" type="image/png" href="favicon.png">
@@ -504,7 +504,7 @@
       <div class="footer-sync">
         <span>🟢 Sincronizado em Nuvem</span> • <span id="txt-timer-atualizacao">atualizado há 0 seg</span>
       </div>
-      <div class="footer-version">Est@r • Versão 1.4.0 (OCR FE-Schrift/Placa)</div>
+      <div class="footer-version">Est@r • Versão 1.4.1 (OCR Resiliente)</div>
     </footer>
   </div>
 
@@ -658,7 +658,6 @@
     let streamVideo = null;
     let escaneandoOCR = false;
     let elementoInputDestinoPlaca = null;
-    let workerOCR = null;
 
     const PATIOS_PADRAO = [
       { id: "patio_batel", nome: "Batel", cor: "#3b82f6" },
@@ -829,21 +828,10 @@
     document.getElementById('btn-salvar-veiculo').addEventListener('click', salvarVeiculoPrecadastro);
     document.getElementById('btn-cancel-edit-veiculo').addEventListener('click', cancelarEdicaoVeiculo);
 
-    // LÓGICA DO SCANNER DE CÂMERA DE ALTA PRECISÃO (FE-SCHRIFT & UPSCALING)
+    // LÓGICA DO SCANNER DE CÂMERA DE ALTA PRECISÃO E ESTABILIDADE
     document.getElementById('btn-cam-entrada').addEventListener('click', () => abrirScannerCamera(document.getElementById('input-placa')));
     document.getElementById('btn-cam-cad-veiculo').addEventListener('click', () => abrirScannerCamera(document.getElementById('cad-veiculo-placa')));
     document.getElementById('btn-close-scanner').addEventListener('click', fecharScannerCamera);
-
-    async function inicializarWorkerOCR() {
-      if (!workerOCR) {
-        workerOCR = await Tesseract.createWorker('eng');
-        await workerOCR.setParameters({
-          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
-          tessedit_enable_dict_lookups: '0'
-        });
-      }
-    }
 
     async function abrirScannerCamera(inputDestino) {
       elementoInputDestinoPlaca = inputDestino;
@@ -851,16 +839,8 @@
       const modalScanner = document.getElementById('modal-scanner-camera');
       const statusTxt = document.getElementById('scanner-status-txt');
 
-      statusTxt.innerText = "Carregando motor OCR especializado...";
-      modalScanner.classList.add('active');
-
-      try {
-        await inicializarWorkerOCR();
-      } catch (e) {
-        console.warn("Falha ao configurar parâmetros avançados OCR, usando fallback.");
-      }
-
       statusTxt.innerText = "Iniciando câmera traseira...";
+      modalScanner.classList.add('active');
 
       try {
         streamVideo = await navigator.mediaDevices.getUserMedia({
@@ -878,7 +858,7 @@
 
       video.srcObject = streamVideo;
       escaneandoOCR = true;
-      statusTxt.innerText = "Aponte para a placa...";
+      statusTxt.innerText = "Aponte a câmera para a placa...";
       processarLoopOCR(video);
     }
 
@@ -887,7 +867,7 @@
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-      // Correção inteligente FE-Schrift
+      // Correção e substituição inteligente de caracteres com base na estrutura de placas
       const paraLetra = (char) => {
         const mapa = { '0': 'O', '1': 'I', '8': 'B', '5': 'S', '6': 'G', '2': 'Z' };
         return mapa[char] || char;
@@ -919,7 +899,7 @@
           const cropX = (video.videoWidth - cropW) / 2;
           const cropY = (video.videoHeight - cropH) / 2;
 
-          // Upscaling de 2x na resolução recortada para ampliar caracteres pequenos
+          // Upscaling de 2x para aumentar a definição dos caracteres da placa
           const scaleFactor = 2;
           canvas.width = cropW * scaleFactor;
           canvas.height = cropH * scaleFactor;
@@ -928,7 +908,7 @@
           const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const d = imgData.data;
 
-          // Processamento adaptativo de imagem
+          // Binarização e alto contraste em PB
           for (let i = 0; i < d.length; i += 4) {
             const gray = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
             const v = gray > 115 ? 255 : 0;
@@ -937,18 +917,12 @@
           ctx.putImageData(imgData, 0, 0);
 
           try {
-            let textoBruto = '';
-            if (workerOCR) {
-              const res = await workerOCR.recognize(canvas);
-              textoBruto = res.data.text.replace(/[^A-Z0-9]/gi, '').toUpperCase();
-            } else {
-              const resultado = await Tesseract.recognize(canvas, 'eng', {
-                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-                tessedit_pageseg_mode: '7'
-              });
-              textoBruto = resultado.data.text.replace(/[^A-Z0-9]/gi, '').toUpperCase();
-            }
+            const resultado = await Tesseract.recognize(canvas, 'eng', {
+              tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+              tessedit_pageseg_mode: '7'
+            });
 
+            const textoBruto = resultado.data.text.replace(/[^A-Z0-9]/gi, '').toUpperCase();
             const regexMercosul = /[A-Z0-9]{3}[0-9][A-Z0-9]{3}/;
             const regexAntigo = /[A-Z0-9]{7}/;
 
@@ -972,7 +946,7 @@
             }
           } catch (e) { }
         }
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 350));
       }
     }
 
@@ -2518,7 +2492,7 @@
 
     function exportarBackupJSON() {
       if (perfilUsuario !== "gestor") return;
-      const dadosBackup = { versao: "1.4.0", dataBackup: new Date().toISOString(), patios, vagas, categoriasVagas, historico, veiculosPrecadastrados };
+      const dadosBackup = { versao: "1.4.1", dataBackup: new Date().toISOString(), patios, vagas, categoriasVagas, historico, veiculosPrecadastrados };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosBackup, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
