@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Est@r BATEL</title>
+  <title>Est@r BATEL - v1.1</title>
 
   <!-- Favicon e Ícone Web App -->
   <link rel="icon" type="image/png" href="favicon.png">
@@ -35,22 +35,28 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; padding: 16px; display: flex; flex-direction: column; max-width: 650px; margin: 0 auto; }
+    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; padding: 16px; display: flex; flex-direction: column; max-width: 1200px; margin: 0 auto; }
 
     header { background-color: var(--card-bg); padding: 16px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
-    .header-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .header-top { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
+    
+    @media (min-width: 768px) {
+      .header-top { flex-direction: row; justify-content: space-between; align-items: center; }
+    }
+
+    .header-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
     h1 { font-size: 1.2rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px; }
 
     .header-btns { display: flex; gap: 6px; flex-wrap: wrap; }
-    .nav-btn { background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+    .nav-btn { background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background 0.2s ease; }
     .nav-btn.active { background: var(--accent-blue); border-color: var(--accent-blue); }
 
-    .auth-bar { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.8rem; }
-    .btn-auth { background: var(--accent-blue); border: none; color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
+    .auth-bar { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.8rem; gap: 8px; }
+    .btn-auth { background: var(--accent-blue); border: none; color: #fff; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
     .btn-auth.logout { background: #475569; }
 
     .top-data-actions { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-    .btn-data { flex: 1; padding: 8px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid transparent; white-space: nowrap; }
+    .btn-data { flex: 1; min-width: 140px; padding: 8px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid transparent; white-space: nowrap; }
     .btn-data-export { background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.4); color: var(--accent-blue); }
     .btn-data-import { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: var(--green-free); }
     .btn-data-reset { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: var(--red-busy); }
@@ -60,8 +66,16 @@
     .progress-bar-bg { background: #334155; height: 10px; border-radius: 5px; overflow: hidden; }
     .progress-bar-fill { background: var(--green-free); height: 100%; width: 0%; transition: width 0.3s ease, background-color 0.3s ease; }
 
-    .dashboard-grid { display: flex; flex-direction: column; gap: 8px; }
-    .dash-row { display: grid; grid-template-columns: 100px 1fr 1fr 1fr; align-items: center; background: rgba(255, 255, 255, 0.03); padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.8rem; }
+    .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    
+    @media (min-width: 600px) {
+      .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 992px) {
+      .dashboard-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .dash-row { display: grid; grid-template-columns: 90px 1fr 1fr 1fr; align-items: center; background: rgba(255, 255, 255, 0.03); padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.8rem; }
     .dash-row.general { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); }
     .dash-label { font-weight: 800; display: flex; align-items: center; gap: 4px; }
     .dash-label.reg { color: var(--accent-blue); }
@@ -79,13 +93,24 @@
     .view-section { display: none; }
     .view-section.active { display: block; }
 
-    .section-divider { font-size: 0.9rem; font-weight: 800; margin: 20px 0 10px 0; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; letter-spacing: 0.5px; }
+    /* Divisores Recolhíveis (Accordion) */
+    .section-divider { font-size: 0.9rem; font-weight: 800; margin: 16px 0 10px 0; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; letter-spacing: 0.5px; cursor: pointer; user-select: none; }
+    .section-divider-title { display: flex; align-items: center; gap: 8px; }
+    .section-toggle-icon { font-size: 0.8rem; transition: transform 0.2s ease; }
+    .section-divider.collapsed .section-toggle-icon { transform: rotate(-90deg); }
+
     .section-divider.reg { color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.3); }
     .section-divider.ext { color: var(--extra-orange); border-color: rgba(249, 115, 22, 0.3); }
     .section-divider.vip { color: var(--vip-gold); border-color: rgba(251, 191, 36, 0.3); }
 
+    .grid-vagas-wrapper { transition: max-height 0.3s ease, opacity 0.2s ease; overflow: hidden; }
+    .grid-vagas-wrapper.collapsed { display: none; }
+
     .grid-vagas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
-    @media (min-width: 450px) { .grid-vagas { grid-template-columns: repeat(3, 1fr); } }
+    
+    @media (min-width: 550px) { .grid-vagas { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 768px) { .grid-vagas { grid-template-columns: repeat(4, 1fr); } }
+    @media (min-width: 1024px) { .grid-vagas { grid-template-columns: repeat(5, 1fr); } }
 
     .vaga-card { background-color: var(--card-bg); border-radius: 14px; border: 2px solid var(--border-color); padding: 12px; display: flex; flex-direction: column; justify-content: space-between; min-height: 195px; position: relative; }
     .vaga-card.livre { border-color: rgba(16, 185, 129, 0.4); }
@@ -185,8 +210,10 @@
 <body>
 
   <header>
-    <div class="header-title">
-      <h1>🅿️ Est@r <span style="font-size: 0.7rem; background: #22c55e; color: #000; padding: 2px 6px; border-radius: 10px; margin-left: 6px;">BATEL</span></h1>
+    <div class="header-top">
+      <div class="header-title">
+        <h1>🅿️ Est@r <span style="font-size: 0.7rem; background: #22c55e; color: #000; padding: 2px 6px; border-radius: 10px; margin-left: 6px;">BATEL v1.1</span></h1>
+      </div>
       <div class="header-btns">
         <button class="nav-btn active" id="btn-tab-vagas">Vagas</button>
         <button class="nav-btn" id="btn-tab-hist" style="display: none;">Histórico</button>
@@ -255,14 +282,38 @@
       <button class="search-clear-btn" id="search-clear-btn">✖</button>
     </div>
 
-    <div class="section-divider reg">🔹 Vagas Regulares</div>
-    <div class="grid-vagas" id="grid-vagas-regulares"></div>
+    <!-- Divisor Regulares recolhível -->
+    <div class="section-divider reg" id="divider-reg">
+      <div class="section-divider-title">
+        <span>🔹 Vagas Regulares</span>
+      </div>
+      <span class="section-toggle-icon">▼</span>
+    </div>
+    <div class="grid-vagas-wrapper" id="wrapper-reg">
+      <div class="grid-vagas" id="grid-vagas-regulares"></div>
+    </div>
 
-    <div class="section-divider ext">🔸 Vagas Extras</div>
-    <div class="grid-vagas" id="grid-vagas-extras"></div>
+    <!-- Divisor Extras recolhível -->
+    <div class="section-divider ext" id="divider-ext">
+      <div class="section-divider-title">
+        <span>🔸 Vagas Extras</span>
+      </div>
+      <span class="section-toggle-icon">▼</span>
+    </div>
+    <div class="grid-vagas-wrapper" id="wrapper-ext">
+      <div class="grid-vagas" id="grid-vagas-extras"></div>
+    </div>
 
-    <div class="section-divider vip">⭐ Vagas VIP</div>
-    <div class="grid-vagas" id="grid-vagas-vip"></div>
+    <!-- Divisor VIP recolhível -->
+    <div class="section-divider vip" id="divider-vip">
+      <div class="section-divider-title">
+        <span>⭐ Vagas VIP</span>
+      </div>
+      <span class="section-toggle-icon">▼</span>
+    </div>
+    <div class="grid-vagas-wrapper" id="wrapper-vip">
+      <div class="grid-vagas" id="grid-vagas-vip"></div>
+    </div>
   </div>
 
   <div id="sec-historico" class="view-section">
@@ -608,6 +659,28 @@
     }
 
     vagas = criarEstruturaPadrao();
+
+    // Lógica das Seções Recolhíveis (Collapse/Accordion)
+    function configurarDivisoresRecolhiveis() {
+      const divisores = [
+        { dividerId: 'divider-reg', wrapperId: 'wrapper-reg' },
+        { dividerId: 'divider-ext', wrapperId: 'wrapper-ext' },
+        { dividerId: 'divider-vip', wrapperId: 'wrapper-vip' }
+      ];
+
+      divisores.forEach(item => {
+        const div = document.getElementById(item.dividerId);
+        const wrap = document.getElementById(item.wrapperId);
+        if (div && wrap) {
+          div.addEventListener('click', () => {
+            div.classList.toggle('collapsed');
+            wrap.classList.toggle('collapsed');
+          });
+        }
+      });
+    }
+
+    configurarDivisoresRecolhiveis();
 
     const inputTelefone = document.getElementById('input-telefone');
     inputTelefone.addEventListener('input', (e) => {
@@ -1764,7 +1837,7 @@
 
     function exportarBackupJSON() {
       if (perfilUsuario !== "gestor") return;
-      const dadosBackup = { versao: "4.9.1-pro", dataBackup: new Date().toISOString(), vagas, historico, veiculosPrecadastrados };
+      const dadosBackup = { versao: "1.1.0", dataBackup: new Date().toISOString(), vagas, historico, veiculosPrecadastrados };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosBackup, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
