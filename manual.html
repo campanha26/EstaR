@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Est@r - Manual Completo do Operador</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --green-free: #10b981;
+      --red-busy: #ef4444;
+      --accent-blue: #3b82f6;
+      --border-color: #334155;
+      --tel-green: #22c55e;
+      --vip-gold: #fbbf24;
+      --amber-edit: #f59e0b;
+      --purple-swap: #a855f7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding: 16px; display: flex; flex-direction: column; align-items: center; }
+
+    .manual-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; }
+
+    /* Cabeçalho */
+    .manual-header { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    .manual-title { font-size: 1.7rem; font-weight: 800; color: #ffffff; margin-bottom: 6px; }
+    .manual-subtitle { font-size: 0.85rem; color: var(--text-sub); }
+
+    /* Seções / Passos */
+    .step-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-left: 5px solid var(--accent-blue); border-radius: 14px; padding: 16px; }
+    .step-card.green { border-left-color: var(--green-free); }
+    .step-card.red { border-left-color: var(--red-busy); }
+    .step-card.gold { border-left-color: var(--vip-gold); }
+    .step-card.purple { border-left-color: var(--purple-swap); }
+
+    .step-header { display: flex; align-items: center; gap: 8px; font-size: 1.05rem; font-weight: 800; margin-bottom: 10px; color: #fff; }
+    .step-body { font-size: 0.85rem; color: var(--text-sub); display: flex; flex-direction: column; gap: 8px; line-height: 1.4; }
+    .step-body strong { color: var(--text-main); }
+
+    /* Simulação de Telas */
+    .mockup-screen { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; margin-top: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); position: relative; }
+    .mockup-label { font-size: 0.7rem; font-weight: bold; color: var(--accent-blue); text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+
+    .mock-input { background: var(--card-bg); border: 1px solid var(--border-color); padding: 8px 10px; border-radius: 6px; color: #fff; font-size: 0.8rem; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .mock-input.active-focus { border-color: var(--accent-blue); box-shadow: 0 0 5px rgba(59,130,246,0.3); }
+    .mock-btn { background: var(--accent-blue); color: #fff; padding: 8px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 0.8rem; margin-top: 4px; }
+
+    /* Autocomplete Box Simulado */
+    .auto-box-sim { background: var(--card-bg); border: 1px solid var(--accent-blue); border-radius: 6px; padding: 6px; margin-top: -2px; margin-bottom: 6px; font-size: 0.75rem; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+    .auto-item-sim { padding: 6px 8px; background: rgba(59, 130, 246, 0.15); border-radius: 4px; display: flex; justify-content: space-between; align-items: center; color: #fff; font-weight: bold; }
+
+    /* Cards de Vagas Simulados */
+    .vaga-card-sim { background-color: var(--card-bg); border-radius: 10px; border: 2px solid var(--border-color); padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .vaga-card-sim.livre { border-color: rgba(16, 185, 129, 0.4); }
+    .vaga-card-sim.ocupada { border-color: rgba(239, 68, 68, 0.5); background-color: rgba(239, 68, 68, 0.05); }
+
+    .vaga-top { display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 0.85rem; }
+    .badge-sim { font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; text-transform: uppercase; font-weight: bold; }
+    .badge-sim.l { background: rgba(16, 185, 129, 0.2); color: var(--green-free); }
+    .badge-sim.o { background: rgba(239, 68, 68, 0.2); color: var(--red-busy); }
+
+    .placa-sim { font-size: 1rem; font-weight: 800; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
+    .tag-sim { font-size: 0.65rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 1px 5px; border-radius: 4px; color: var(--vip-gold); }
+
+    /* Botões de Contato Simulado */
+    .contact-row-sim { display: flex; gap: 6px; margin-top: 4px; }
+    .phone-btn-sim { display: inline-flex; align-items: center; gap: 4px; background-color: rgba(34, 197, 94, 0.15); color: var(--tel-green); border: 1px solid rgba(34, 197, 94, 0.3); padding: 2px 6px; border-radius: 6px; font-weight: 700; font-size: 0.7rem; }
+    .phone-btn-sim.wa { background-color: rgba(37, 211, 102, 0.2); color: #25d366; border-color: rgba(37, 211, 102, 0.4); }
+
+    .actions-sim { display: flex; gap: 4px; margin-top: 4px; }
+    .act-btn { flex: 1; padding: 6px 4px; border: none; border-radius: 6px; font-weight: bold; font-size: 0.7rem; text-align: center; cursor: default; }
+    .act-btn.ocupar { background: var(--green-free); color: #000; }
+    .act-btn.sair { background: var(--red-busy); color: #fff; }
+    .act-btn.trocar { background: rgba(168, 85, 247, 0.2); border: 1px solid var(--purple-swap); color: var(--purple-swap); }
+    .act-btn.editar { background: rgba(245, 158, 11, 0.2); border: 1px solid var(--amber-edit); color: var(--amber-edit); }
+
+    .tip-box { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 10px; font-size: 0.8rem; color: #93c5fd; margin-top: 6px; }
+
+    .footer-manual { text-align: center; font-size: 0.75rem; color: var(--text-sub); margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="manual-container">
+
+    <!-- CABEÇALHO -->
+    <div class="manual-header">
+      <div class="manual-title">🅿️ Est@r</div>
+      <div class="manual-subtitle">Manual Completo do Operador • Guia Prático Mobile</div>
+    </div>
+
+    <!-- PASSO 1: LOGIN -->
+    <div class="step-card">
+      <div class="step-header">🔐 1. Acessando o Sistema (Login)</div>
+      <div class="step-body">
+        <p>Ao abrir o aplicativo, insira o seu <strong>e-mail institucional completo</strong> e a sua senha nos campos indicados para entrar na plataforma.</p>
+        
+        <div class="mockup-screen">
+          <div class="mockup-label">📱 Tela Inicial de Acesso:</div>
+          <div class="mock-input"><span>joao.silva@estar.com</span><span style="color:var(--text-sub);">📧</span></div>
+          <div class="mock-input"><span>••••••••</span><span style="color:var(--text-sub);">🔑</span></div>
+          <div class="mock_btn">Entrar no Sistema</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASSO 2: VAGA LIVRE E AUTOCOMPLETE -->
+    <div class="step-card green">
+      <div class="step-header">🟢 2. Registrando Entrada & Autocomplete Inteligente</div>
+      <div class="step-body">
+        <p>Para registrar um veículo, toque em uma vaga livre e comece a digitar a placa.</p>
+        
+        <div class="mockup-screen">
+          <div class="mockup-label">📱 Exemplo de Uso do Autocomplete:</div>
+          <div class="mock-input active-focus">
+            <span>ABC</span>
+            <span style="font-size:0.7rem; color:var(--accent-blue); font-weight:bold;">⌨️ Digitando...</span>
+          </div>
+          <!-- Sugestão de Autocomplete -->
+          <div class="auto-box-sim">
+            <div style="font-size: 0.65rem; color: var(--text-sub); margin-bottom: 3px;">Veículo encontrado no histórico/pré-cadastro:</div>
+            <div class="auto-item-sim">
+              <span>🚗 ABC1234 - GOL PRATA</span>
+              <span style="color: var(--vip-gold);">⭐ VIP</span>
+            </div>
+          </div>
+        </div>
+
+        <p>• <strong>Agilidade:</strong> Ao digitar apenas as primeiras letras ou números da placa, o sistema sugere veículos já cadastrados anteriormente.</p>
+        <p>• Ao clicar na sugestão, o sistema preenche sozinho o modelo, nome do condutor, telefone e TAG!</p>
+      </div>
+    </div>
+
+    <!-- PASSO 3: VAGA OCUPADA, CONTATOS, TROCA E EDIÇÃO -->
+    <div class="step-card red">
+      <div class="step-header">🚗 3. Vaga Ocupada: Saída, Contatos, Trocas & Edição</div>
+      <div class="step-body">
+        <p>Quando a vaga está ocupada, o card exibe o tempo e ferramentas essenciais de comunicação e controle:</p>
+
+        <div class="mockup-screen">
+          <div class="mockup-label">📱 Tela da Vaga Ocupada & Ações:</div>
+          <div class="vaga-card-sim ocupada">
+            <div class="vaga-top">
+              <span>🔹 Vaga 1A</span>
+              <span class="badge-sim o">Ocupada</span>
+            </div>
+            <div class="placa-sim">
+              <span>ABC1234</span>
+              <span class="tag-sim">⭐ VIP</span>
+            </div>
+            <!-- Botões de Ligar e WhatsApp -->
+            <div class="contact-row-sim">
+              <div class="phone-btn-sim">📞 (41) 9999-9999</div>
+              <div class="phone-btn-sim wa">💬 Whats</div>
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-sub); margin-top:2px;">GOL PRATA - JOÃO SILVA</div>
+            <div style="font-size:0.68rem; color:var(--accent-blue); font-weight:bold;">🕒 14:30 (45 min)</div>
+            
+            <div class="actions-sim" style="margin-top: 6px;">
+              <div class="act-btn sair" title="Registrar Saída">SAÍDA</div>
+              <div class="act-btn trocar" title="Trocar de Vaga">🔄</div>
+              <div class="act-btn editar" title="Editar Dados">✏️</div>
+            </div>
+          </div>
+        </div>
+
+        <p>• <strong>Contato Direto (📞 / 💬):</strong> Use o botão verde para ligar ou o botão do WhatsApp para abrir uma conversa instantânea com o motorista.</p>
+        <p>• <strong>Botão SAÍDA (Vermelho):</strong> Encerra a estadia, calcula o tempo total de permanência e salva o registro no histórico.</p>
+        <p>• <strong>Botão de Troca (🔄):</strong> Permite transferir o veículo atual para outra vaga do pátio. <em>Nota: Se a vaga de destino escolhida já estiver ocupada, o sistema faz a inversão automática (swap) dos veículos entre si.</em></p>
+        <p>• <strong>Botão de Edição (✏️):</strong> Abre a tela para corrigir rapidamente qualquer dado cadastrado incorretamente (como telefone, modelo, setor ou nome do condutor).</p>
+      </div>
+    </div>
+
+    <!-- PASSO 4: PESQUISA E RESULTADOS -->
+    <div class="step-card purple">
+      <div class="step-header">🔍 4. Pesquisa Instantânea e Resultados</div>
+      <div class="step-body">
+        <p>Precisa achar um veículo rapidamente? Utilize a barra de busca no topo do aplicativo.</p>
+
+        <div class="mockup-screen">
+          <div class="mockup-label">📱 Exemplo de Pesquisa e Resultado:</div>
+          <div class="mock-input" style="border-color: var(--accent-blue); margin-bottom: 8px;">
+            <span style="color:#fff;">🔍 JOÃO</span>
+            <span style="font-size: 0.75rem; color: var(--text-sub);">Buscando...</span>
+          </div>
+          <div style="font-size: 0.7rem; color: var(--text-sub); margin-bottom: 4px;">Resultado encontrado na tela:</div>
+          <div class="vaga-card-sim ocupada" style="padding: 8px;">
+            <div class="vaga-top" style="font-size:0.75rem;">
+              <span>🔹 Vaga 2B</span>
+              <span class="badge-sim o">Ocupada</span>
+            </div>
+            <div class="placa-sim" style="font-size:0.85rem;">COROLLA PRETO</div>
+            <div style="font-size:0.7rem; color:#fff;">Condutor: <strong>JOÃO SILVA</strong></div>
+          </div>
+        </div>
+
+        <div class="tip-box">
+          💡 <b>Filtre por qualquer dado:</b> Digite trechos da placa, nome do motorista, modelo do carro, setor de destino ou TAG. O sistema oculta as demais vagas e mostra apenas o resultado correspondente em tempo real.
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-manual">
+      Est@r • Agilidade e precisão na palma da mão.
+    </div>
+
+  </div>
+
+</body>
+</html>
