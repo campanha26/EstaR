@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Est@r - v1.5.1 (ALPR + MMC Ativo)</title>
+  <title>Est@r - v1.5.2 (Somente Leitura de Placa)</title>
 
   <!-- Favicon e Ícone Web App -->
   <link rel="icon" type="image/png" href="favicon.png">
@@ -501,7 +501,7 @@
       <div class="footer-sync">
         <span>🟢 Sincronizado em Nuvem</span> • <span id="txt-timer-atualizacao">atualizado há 0 seg</span>
       </div>
-      <div class="footer-version">Est@r • Versão 1.5.1 (Plate Recognizer + MMC Exato)</div>
+      <div class="footer-version">Est@r • Versão 1.5.2 (Somente Leitura de Placa)</div>
     </footer>
   </div>
 
@@ -829,7 +829,7 @@
     document.getElementById('btn-salvar-veiculo').addEventListener('click', salvarVeiculoPrecadastro);
     document.getElementById('btn-cancel-edit-veiculo').addEventListener('click', cancelarEdicaoVeiculo);
 
-    // INTEGRAÇÃO DA CÂMERA COM PLATE RECOGNIZER + MMC
+    // INTEGRAÇÃO DA CÂMERA COM PLATE RECOGNIZER (APENAS PLACA)
     document.getElementById('btn-cam-entrada').addEventListener('click', () => abrirScannerCamera(document.getElementById('input-placa')));
     document.getElementById('btn-cam-cad-veiculo').addEventListener('click', () => abrirScannerCamera(document.getElementById('cad-veiculo-placa')));
     document.getElementById('btn-close-scanner').addEventListener('click', fecharScannerCamera);
@@ -882,7 +882,7 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // 2. Converte para Blob JPEG e envia para o Plate Recognizer (COM MMC=TRUE)
+      // 2. Converte para Blob JPEG e envia para o Plate Recognizer (SOMENTE PLACA)
       canvas.toBlob(async (blob) => {
         if (!blob) {
           statusTxt.innerText = "Erro ao capturar imagem.";
@@ -892,7 +892,6 @@
         const formData = new FormData();
         formData.append('upload', blob, 'placa.jpg');
         formData.append('regions', 'br');
-        formData.append('mmc', 'true'); // ATIVA MARCA, MODELO E COR EXATOS
 
         try {
           const response = await fetch('https://api.platerecognizer.com/v1/plate-reader/', {
@@ -908,29 +907,6 @@
           if (data.results && data.results.length > 0) {
             let placaDetectada = data.results[0].plate.toUpperCase();
             placaDetectada = formatarPlacaPadrao(placaDetectada);
-
-            // Preenche Marca e Modelo exatos se identificados pela API
-            if (data.results[0].vehicle) {
-              const veh = data.results[0].vehicle;
-              const inputMod = document.getElementById('input-modelo') || document.getElementById('cad-veiculo-modelo');
-              
-              if (inputMod && !inputMod.value) {
-                let marcaModelo = '';
-
-                // Busca por fabricante + modelo especifico (ex: VW GOL)
-                if (veh.make_model && veh.make_model.length > 0) {
-                  const topMM = veh.make_model[0];
-                  marcaModelo = `${topMM.make} ${topMM.model}`.toUpperCase();
-                } else if (veh.type) {
-                  // Fallback para tipo de carroceria
-                  marcaModelo = veh.type.toUpperCase();
-                }
-
-                if (marcaModelo) {
-                  inputMod.value = marcaModelo;
-                }
-              }
-            }
 
             if (elementoInputDestinoPlaca) {
               elementoInputDestinoPlaca.value = placaDetectada;
@@ -2491,7 +2467,7 @@
 
     function exportarBackupJSON() {
       if (perfilUsuario !== "gestor") return;
-      const dadosBackup = { versao: "1.5.1", dataBackup: new Date().toISOString(), patios, vagas, categoriasVagas, historico, veiculosPrecadastrados };
+      const dadosBackup = { versao: "1.5.2", dataBackup: new Date().toISOString(), patios, vagas, categoriasVagas, historico, veiculosPrecadastrados };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosBackup, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
