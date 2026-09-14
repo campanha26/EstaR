@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Est@r - v1.5.2 (Somente Leitura de Placa)</title>
+  <title>Est@r - v1.5.3 (Ajustes de E-mail e Equipe)</title>
 
   <!-- Favicon e Ícone Web App -->
   <link rel="icon" type="image/png" href="favicon.png">
@@ -230,7 +230,7 @@
       
       <div class="form-group" style="text-align: left;">
         <label class="form-label">E-MAIL DE ACESSO</label>
-        <input type="email" id="landing-login-email" class="modal-input" placeholder="seu.email@estacionamento.com">
+        <input type="email" id="landing-login-email" class="modal-input" placeholder="nome@estar.com">
       </div>
       
       <div class="form-group" style="text-align: left;">
@@ -398,8 +398,11 @@
       <div class="form-card">
         <h2 style="font-size: 1.1rem; margin-bottom: 14px; color: var(--accent-blue);">➕ Cadastrar Novo Usuário</h2>
         <div class="form-group">
-          <label class="form-label">E-MAIL DO OPERADOR / GESTOR *</label>
-          <input type="email" id="novo-user-email" class="modal-input" placeholder="operador@estacionamento.com">
+          <label class="form-label">NOME DE ACESSO DO OPERADOR / GESTOR *</label>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="text" id="novo-user-email" class="modal-input" placeholder="nome.sobrenome" style="flex: 1;">
+            <span style="font-weight: bold; color: var(--accent-blue); background: rgba(59, 130, 246, 0.15); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.4); white-space: nowrap;">@estar.com</span>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">SENHA DE ACESSO *</label>
@@ -501,7 +504,7 @@
       <div class="footer-sync">
         <span>🟢 Sincronizado em Nuvem</span> • <span id="txt-timer-atualizacao">atualizado há 0 seg</span>
       </div>
-      <div class="footer-version">Est@r • Versão 1.5.2 (Somente Leitura de Placa)</div>
+      <div class="footer-version">Est@r • Versão 1.5.3 (Ajustes de E-mail e Equipe)</div>
     </footer>
   </div>
 
@@ -687,7 +690,6 @@
       if (elTimer) elTimer.innerText = `atualizado há 0 seg`;
     }
 
-    // SANITIZAÇÃO E PADRONIZAÇÃO RIGOROSA DE PLACAS (100% SEM HÍFEN)
     function formatarPlacaPadrao(valor) {
       if (!valor) return '';
       return valor.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 7);
@@ -829,7 +831,6 @@
     document.getElementById('btn-salvar-veiculo').addEventListener('click', salvarVeiculoPrecadastro);
     document.getElementById('btn-cancel-edit-veiculo').addEventListener('click', cancelarEdicaoVeiculo);
 
-    // INTEGRAÇÃO DA CÂMERA COM PLATE RECOGNIZER (APENAS PLACA)
     document.getElementById('btn-cam-entrada').addEventListener('click', () => abrirScannerCamera(document.getElementById('input-placa')));
     document.getElementById('btn-cam-cad-veiculo').addEventListener('click', () => abrirScannerCamera(document.getElementById('cad-veiculo-placa')));
     document.getElementById('btn-close-scanner').addEventListener('click', fecharScannerCamera);
@@ -875,14 +876,12 @@
 
       statusTxt.innerText = "⏳ Identificando placa via ALPR Cloud...";
 
-      // 1. Desenha o frame no Canvas
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // 2. Converte para Blob JPEG e envia para o Plate Recognizer (SOMENTE PLACA)
       canvas.toBlob(async (blob) => {
         if (!blob) {
           statusTxt.innerText = "Erro ao capturar imagem.";
@@ -1078,17 +1077,22 @@
       const btnExportSearchCsv = document.getElementById('btn-export-search-csv');
 
       if (user) {
-        secLoginLanding.style.display = 'none';
-        appContainer.style.display = 'flex';
-
         try {
           const userDoc = await getDoc(doc(db, "usuarios", user.uid));
-          if (userDoc.exists() && userDoc.data().funcao) {
+          if (!userDoc.exists()) {
+            await signOut(auth);
+            alert("Sua conta foi desativada ou removida da equipe.");
+            return;
+          }
+          if (userDoc.data().funcao) {
             perfilUsuario = userDoc.data().funcao.toLowerCase();
           } else {
             perfilUsuario = "operador";
           }
         } catch (err) { perfilUsuario = "operador"; }
+
+        secLoginLanding.style.display = 'none';
+        appContainer.style.display = 'flex';
 
         actionBtn.innerText = 'Sair';
         actionBtn.className = 'btn-auth logout';
@@ -1714,9 +1718,13 @@
     }
 
     async function realizarLoginLanding() {
-      const email = document.getElementById('landing-login-email').value.trim();
+      let email = document.getElementById('landing-login-email').value.trim();
       const senha = document.getElementById('landing-login-senha').value;
       if (!email || !senha) return alert('Informe e-mail e senha para acessar.');
+
+      if (!email.includes('@')) {
+        email += '@estar.com';
+      }
 
       try {
         await signInWithEmailAndPassword(auth, email, senha);
@@ -1726,21 +1734,24 @@
     async function cadastrarNovoUsuario() {
       if (perfilUsuario !== "gestor") return;
 
-      const email = document.getElementById('novo-user-email').value.trim();
+      let prefixo = document.getElementById('novo-user-email').value.trim().toLowerCase();
       const senha = document.getElementById('novo-user-senha').value;
       const funcao = document.getElementById('novo-user-funcao').value;
 
-      if (!email || !senha) return alert('Preencha e-mail e senha.');
+      if (!prefixo || !senha) return alert('Preencha o nome de acesso e a senha.');
       if (senha.length < 6) return alert('A senha deve ter pelo menos 6 caracteres.');
 
+      prefixo = prefixo.replace(/@.*/, '');
+      const emailCompleto = `${prefixo}@estar.com`;
+
       try {
-        const userCred = await createUserWithEmailAndPassword(secondaryAuth, email, senha);
+        const userCred = await createUserWithEmailAndPassword(secondaryAuth, emailCompleto, senha);
         const newUid = userCred.user.uid;
 
-        await setDoc(doc(db, "usuarios", newUid), { email, funcao, criadoEm: new Date().toISOString() });
+        await setDoc(doc(db, "usuarios", newUid), { email: emailCompleto, funcao, criadoEm: new Date().toISOString() });
         await signOut(secondaryAuth);
 
-        alert(`Usuário (${email}) cadastrado com sucesso!`);
+        alert(`Usuário (${emailCompleto}) cadastrado com sucesso!`);
         document.getElementById('novo-user-email').value = '';
         document.getElementById('novo-user-senha').value = '';
       } catch (error) { alert('Erro ao cadastrar usuário: ' + error.message); }
@@ -1822,7 +1833,7 @@
       if (confirm(`Deseja remover a permissão do usuário ${email}?`)) {
         try {
           await deleteDoc(doc(db, "usuarios", uid));
-          alert('Acesso do usuário removido!');
+          alert('Acesso do usuário removido! O registro foi apagado da coleção.');
         } catch (e) { alert('Erro ao excluir usuário: ' + e.message); }
       }
     }
@@ -2467,7 +2478,7 @@
 
     function exportarBackupJSON() {
       if (perfilUsuario !== "gestor") return;
-      const dadosBackup = { versao: "1.5.2", dataBackup: new Date().toISOString(), patios, vagas, categoriasVagas, historico, veiculosPrecadastrados };
+      const dadosBackup = { versao: "1.5.3", dataBackup: new Date().toISOString(), patios, vagas, categoriasVagas, historico, veiculosPrecadastrados };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosBackup, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
